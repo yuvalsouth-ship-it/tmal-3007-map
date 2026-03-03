@@ -1,0 +1,695 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>תמ"ל 3007 — חיפוש זכויות בנייה</title>
+
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      direction: rtl;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      overflow: hidden;
+      background: #1a1a2e;
+      color: #e0e0e0;
+    }
+
+    /* ===== HEADER ===== */
+    #top-bar {
+      background: linear-gradient(135deg, #0f3460 0%, #16213e 100%);
+      padding: 14px 24px;
+      border-bottom: 3px solid #e94560;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-shrink: 0;
+    }
+    #top-bar h1 {
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: #fff;
+    }
+    #top-bar .subtitle {
+      font-size: 0.75rem;
+      color: #a0b4cc;
+      margin-top: 2px;
+    }
+    #top-bar .nav-link {
+      color: #4a9eff;
+      text-decoration: none;
+      font-size: 0.8rem;
+      padding: 6px 14px;
+      border: 1px solid #4a9eff;
+      border-radius: 6px;
+      transition: all 0.2s;
+    }
+    #top-bar .nav-link:hover {
+      background: #4a9eff;
+      color: #fff;
+    }
+
+    /* ===== MAIN LAYOUT ===== */
+    #content {
+      display: flex;
+      flex: 1;
+      overflow: hidden;
+    }
+
+    /* ===== SEARCH PANEL (RIGHT) ===== */
+    #search-panel {
+      width: 400px;
+      min-width: 320px;
+      background: #16213e;
+      display: flex;
+      flex-direction: column;
+      box-shadow: -3px 0 12px rgba(0,0,0,0.4);
+      z-index: 10;
+    }
+
+    /* Search Section */
+    #search-section {
+      padding: 18px 18px 0;
+      position: relative;
+    }
+    #search-section label {
+      display: block;
+      font-size: 0.8rem;
+      color: #a0b4cc;
+      margin-bottom: 8px;
+      font-weight: 600;
+    }
+    #search-input {
+      width: 100%;
+      padding: 12px 16px;
+      border-radius: 8px;
+      border: 2px solid #2a3a50;
+      background: #0d1b2a;
+      color: #e0e0e0;
+      font-size: 1.05rem;
+      direction: rtl;
+      outline: none;
+      transition: border 0.2s, box-shadow 0.2s;
+    }
+    #search-input:focus {
+      border-color: #4a9eff;
+      box-shadow: 0 0 0 3px rgba(74,158,255,0.15);
+    }
+    #search-input::placeholder { color: #445; }
+
+    /* Suggestions Dropdown */
+    #suggestions {
+      position: absolute;
+      top: 100%;
+      right: 18px;
+      left: 18px;
+      background: #0d1b2a;
+      border: 1px solid #2a3a50;
+      border-top: none;
+      border-radius: 0 0 8px 8px;
+      max-height: 280px;
+      overflow-y: auto;
+      z-index: 100;
+      display: none;
+    }
+    #suggestions.open { display: block; }
+    .suggestion-item {
+      padding: 10px 16px;
+      cursor: pointer;
+      font-size: 0.88rem;
+      color: #d0e0f0;
+      border-bottom: 1px solid #1a2a3a;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      transition: background 0.1s;
+    }
+    .suggestion-item:hover,
+    .suggestion-item.active {
+      background: #1a2a3a;
+    }
+    .suggestion-item:last-child { border-bottom: none; }
+    .suggestion-id {
+      font-weight: 700;
+      color: #4a9eff;
+      font-size: 0.95rem;
+    }
+    .suggestion-designation {
+      font-size: 0.75rem;
+      color: #7a8fa0;
+    }
+
+    /* Result Panel */
+    #result-panel {
+      flex: 1;
+      overflow-y: auto;
+      padding: 18px;
+    }
+
+    /* Placeholder */
+    .placeholder {
+      text-align: center;
+      margin-top: 60px;
+      color: #445;
+    }
+    .placeholder svg {
+      display: block;
+      margin: 0 auto 14px;
+      opacity: 0.25;
+    }
+    .placeholder p {
+      font-size: 0.85rem;
+      line-height: 1.8;
+    }
+
+    /* Info Card */
+    .info-card {
+      background: #0d1b2a;
+      border-radius: 12px;
+      border: 1px solid #2a3a50;
+      overflow: hidden;
+    }
+    .card-header {
+      padding: 16px 18px;
+      background: linear-gradient(135deg, #0f3460, #162850);
+      border-bottom: 2px solid #e94560;
+    }
+    .card-header .parcel-num {
+      font-size: 1.3rem;
+      font-weight: 800;
+      color: #4a9eff;
+    }
+    .card-header .designation-badge {
+      display: inline-block;
+      padding: 3px 12px;
+      border-radius: 14px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: #fff;
+      margin-top: 6px;
+    }
+
+    /* Section */
+    .card-section {
+      padding: 14px 18px;
+      border-bottom: 1px solid #1a2a3a;
+    }
+    .card-section:last-child { border-bottom: none; }
+    .section-title {
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: #e94560;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .section-title::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: #2a3a50;
+    }
+
+    .data-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      padding: 4px 0;
+      gap: 12px;
+    }
+    .data-label {
+      font-size: 0.78rem;
+      color: #7a8fa0;
+      min-width: 100px;
+      flex-shrink: 0;
+    }
+    .data-value {
+      font-size: 0.85rem;
+      color: #d0e0f0;
+      text-align: left;
+      word-break: break-word;
+      font-weight: 500;
+    }
+    .data-value.highlight {
+      color: #4aff8a;
+      font-weight: 700;
+    }
+
+    /* Use sub-headers (for multi-use parcels) */
+    .use-header {
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: #4a9eff;
+      padding: 8px 0 6px;
+    }
+    .use-separator {
+      border-top: 1px dashed #2a3a50;
+      margin-top: 8px;
+    }
+
+    /* Stats bar */
+    #stats-bar {
+      background: #0d1b2a;
+      padding: 8px 18px;
+      font-size: 0.72rem;
+      color: #445;
+      border-top: 1px solid #2a3a50;
+      flex-shrink: 0;
+    }
+
+    /* ===== MAP SECTION (LEFT) ===== */
+    #map-container {
+      flex: 1;
+      position: relative;
+      background: #0d1b2a;
+    }
+    #map-frame {
+      width: 100%;
+      height: 100%;
+      border: none;
+    }
+    #map-loading {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #0d1b2a;
+      color: #556;
+      font-size: 0.9rem;
+      z-index: 5;
+      transition: opacity 0.5s;
+    }
+    #map-loading.hidden {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    /* ===== RESPONSIVE ===== */
+    @media (max-width: 768px) {
+      #content {
+        flex-direction: column;
+      }
+      #search-panel {
+        width: 100%;
+        min-width: unset;
+        max-height: 50vh;
+      }
+      #map-container {
+        min-height: 50vh;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ========= HEADER ========= -->
+<header id="top-bar">
+  <div>
+    <h1>🏗️ תמ"ל 3007 — חיפוש זכויות בנייה</h1>
+    <div class="subtitle">חיפוש מידע תכנוני: ייעוד, זכויות בנייה, בעלות ומיקום על המפה</div>
+  </div>
+  <a class="nav-link" href="index.html" target="_blank">🗺️ מפה מלאה</a>
+</header>
+
+<!-- ========= MAIN ========= -->
+<main id="content">
+
+  <!-- RIGHT: Search Panel -->
+  <div id="search-panel">
+
+    <div id="search-section">
+      <label for="search-input">🔍 חיפוש לפי מספר תא שטח</label>
+      <input type="text" id="search-input" placeholder="הקלד מספר תא שטח..." autocomplete="off" />
+      <div id="suggestions"></div>
+    </div>
+
+    <div id="result-panel">
+      <div class="placeholder">
+        <svg width="50" height="50" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <circle cx="11" cy="11" r="8"/>
+          <path d="M21 21l-4.35-4.35"/>
+        </svg>
+        <p>הקלד מספר תא שטח בשורת החיפוש<br/>לצפייה בזכויות הבנייה ופרטי התכנון</p>
+      </div>
+    </div>
+
+    <div id="stats-bar">
+      <span id="stats-text">טוען נתונים...</span>
+    </div>
+  </div>
+
+  <!-- LEFT: Map -->
+  <div id="map-container">
+    <div id="map-loading">⏳ טוען מפה...</div>
+    <iframe id="map-frame" src="index.html"></iframe>
+  </div>
+
+</main>
+
+
+<script>
+// ===================================================================
+//  נתונים
+// ===================================================================
+let rightsData = null;   // מ-building_rights.json
+let parcelProps = {};    // מ-parcels_merged.geojson (properties בלבד)
+let allParcelIds = [];   // רשימת כל מספרי תא שטח
+let activeSuggestion = -1;
+
+// ===================================================================
+//  טעינת נתונים
+// ===================================================================
+async function loadData() {
+  const stats = document.getElementById('stats-text');
+
+  // 1. טעינת זכויות בנייה מ-JSON
+  try {
+    const res = await fetch('data/building_rights.json');
+    if (res.ok) {
+      rightsData = await res.json();
+      console.log(`✅ נטענו ${Object.keys(rightsData.parcels).length} תאי שטח מ-PDF`);
+    }
+  } catch (e) {
+    console.log('ℹ️ אין building_rights.json — ממשיך בלי נתוני PDF');
+  }
+
+  // 2. טעינת GeoJSON (properties בלבד)
+  try {
+    const res = await fetch('data/parcels_merged.geojson');
+    if (res.ok) {
+      const geojson = await res.json();
+      for (const feature of (geojson.features || [])) {
+        const id = String(feature.properties["מספר תא שטח"] || "").trim();
+        if (id) {
+          parcelProps[id] = feature.properties;
+        }
+      }
+      console.log(`✅ נטענו ${Object.keys(parcelProps).length} תאי שטח מ-GeoJSON`);
+    }
+  } catch (e) {
+    console.log('ℹ️ אין parcels_merged.geojson');
+  }
+
+  // בניית רשימת תאי שטח (איחוד שני המקורות)
+  const ids = new Set([
+    ...Object.keys(parcelProps),
+    ...(rightsData ? Object.keys(rightsData.parcels) : []),
+  ]);
+  allParcelIds = [...ids].sort((a, b) => {
+    const na = parseInt(a), nb = parseInt(b);
+    if (!isNaN(na) && !isNaN(nb)) return na - nb;
+    return a.localeCompare(b);
+  });
+
+  // סטטיסטיקות
+  const totalParcels = allParcelIds.length;
+  const withRights = rightsData ? Object.keys(rightsData.parcels).length : 0;
+  stats.textContent = `${totalParcels} תאי שטח | ${withRights} עם נתוני זכויות מ-PDF`;
+}
+
+
+// ===================================================================
+//  חיפוש והצעות
+// ===================================================================
+const searchInput = document.getElementById('search-input');
+const suggestionsEl = document.getElementById('suggestions');
+
+searchInput.addEventListener('input', function () {
+  const query = this.value.trim();
+  activeSuggestion = -1;
+
+  if (!query) {
+    closeSuggestions();
+    return;
+  }
+
+  // סינון — קודם התאמה מדויקת, אח"כ starts-with, אח"כ includes
+  const exact = [];
+  const startsWith = [];
+  const includes = [];
+
+  for (const id of allParcelIds) {
+    if (id === query) exact.push(id);
+    else if (id.startsWith(query)) startsWith.push(id);
+    else if (id.includes(query)) includes.push(id);
+  }
+
+  const matches = [...exact, ...startsWith, ...includes].slice(0, 12);
+
+  if (matches.length === 0) {
+    suggestionsEl.innerHTML = `
+      <div style="padding:12px 16px; color:#ff6b6b; font-size:0.85rem;">
+        ✗ לא נמצא תא שטח "${query}"
+      </div>`;
+    suggestionsEl.classList.add('open');
+    return;
+  }
+
+  // אם יש התאמה מדויקת ויחידה — הצג ישירות
+  if (exact.length === 1 && matches.length === 1) {
+    closeSuggestions();
+    selectParcel(exact[0]);
+    return;
+  }
+
+  // הצגת הצעות
+  suggestionsEl.innerHTML = matches.map((id, i) => {
+    const designation = parcelProps[id]?.["ייעוד"] || "";
+    return `
+      <div class="suggestion-item" data-id="${id}" data-index="${i}">
+        <span class="suggestion-id">${id}</span>
+        <span class="suggestion-designation">${designation}</span>
+      </div>`;
+  }).join('');
+  suggestionsEl.classList.add('open');
+
+  // לחיצה על הצעה
+  suggestionsEl.querySelectorAll('.suggestion-item').forEach(item => {
+    item.addEventListener('click', () => {
+      selectParcel(item.dataset.id);
+      closeSuggestions();
+    });
+  });
+});
+
+// ניווט מקלדת בהצעות
+searchInput.addEventListener('keydown', function (e) {
+  const items = suggestionsEl.querySelectorAll('.suggestion-item');
+  if (!items.length) return;
+
+  if (e.key === 'ArrowDown') {
+    e.preventDefault();
+    activeSuggestion = Math.min(activeSuggestion + 1, items.length - 1);
+    updateActiveSuggestion(items);
+  } else if (e.key === 'ArrowUp') {
+    e.preventDefault();
+    activeSuggestion = Math.max(activeSuggestion - 1, 0);
+    updateActiveSuggestion(items);
+  } else if (e.key === 'Enter') {
+    e.preventDefault();
+    if (activeSuggestion >= 0 && items[activeSuggestion]) {
+      selectParcel(items[activeSuggestion].dataset.id);
+      closeSuggestions();
+    } else if (items.length > 0) {
+      selectParcel(items[0].dataset.id);
+      closeSuggestions();
+    }
+  } else if (e.key === 'Escape') {
+    closeSuggestions();
+  }
+});
+
+function updateActiveSuggestion(items) {
+  items.forEach((item, i) => {
+    item.classList.toggle('active', i === activeSuggestion);
+  });
+  if (items[activeSuggestion]) {
+    items[activeSuggestion].scrollIntoView({ block: 'nearest' });
+  }
+}
+
+function closeSuggestions() {
+  suggestionsEl.classList.remove('open');
+  suggestionsEl.innerHTML = '';
+  activeSuggestion = -1;
+}
+
+// סגירת הצעות בלחיצה מחוץ
+document.addEventListener('click', (e) => {
+  if (!e.target.closest('#search-section')) {
+    closeSuggestions();
+  }
+});
+
+
+// ===================================================================
+//  הצגת כרטיס מידע
+// ===================================================================
+function selectParcel(parcelId) {
+  searchInput.value = parcelId;
+
+  // מיזוג נתונים מ-GeoJSON ומ-PDF
+  const geo = parcelProps[parcelId] || {};
+  const rights = rightsData?.parcels?.[parcelId] || {};
+  const merged = { ...geo, ...rights };
+
+  renderInfoCard(parcelId, merged, geo, rights);
+
+  // שליחת הודעה למפה
+  const iframe = document.getElementById('map-frame');
+  if (iframe.contentWindow) {
+    iframe.contentWindow.postMessage({
+      action: 'selectParcel',
+      parcelId: parcelId,
+    }, '*');
+  }
+}
+
+// מיפוי שמות שדות מה-PDF לשדות תצוגה
+// (שמות בפורמט ה-JSON שחולץ → שם תצוגה)
+const PDF_FIELD_MAP = {
+  designation:    ["יעוד", "ייעוד"],
+  plotSize:       [") מ \" ר ( גודל מגרש", "גודל מגרש"],
+  units:          ["מספר יח \" ד", "מספר יח\"ד", "יח\"ד"],
+  buildAbove:     ["שטחי בנייה מעל הכניסה הקובעת", ") מ \" ר ( שטחי בניה", "שטחי בניה"],
+  buildBelow:     ["שטחי בנייה מתחת לכניסה הקובעת", "שטחי בניה מתחת"],
+  floorsAbove:    ["קומות מעל הכניסה הקובעת", "מקסימום מספר קומות", "מספר קומות", "קומות"],
+  floorsBelow:    ["קומות מתחת לכניסה הקובעת", "קומות תת קרקע"],
+  buildingType:   ["בניין \\ מקום", "בניין / מקום", "בניין \\ מיקום", "בניין / מיקום"],
+  use:            ["שימוש"],
+};
+
+function findField(data, fieldKeys) {
+  for (const key of fieldKeys) {
+    if (data[key] !== undefined && data[key] !== "") return data[key];
+  }
+  return null;
+}
+
+function renderUseFields(data) {
+  // מרנדר שדות ספציפיים לשימוש מתוך אובייקט נתונים
+  let rows = '';
+  const plotSize     = findField(data, PDF_FIELD_MAP.plotSize);
+  const units        = findField(data, PDF_FIELD_MAP.units);
+  const buildAbove   = findField(data, PDF_FIELD_MAP.buildAbove);
+  const buildBelow   = findField(data, PDF_FIELD_MAP.buildBelow);
+  const floorsAbove  = findField(data, PDF_FIELD_MAP.floorsAbove);
+  const floorsBelow  = findField(data, PDF_FIELD_MAP.floorsBelow);
+  const buildingType = findField(data, PDF_FIELD_MAP.buildingType);
+
+  if (plotSize)     rows += dataRow("גודל מגרש (מ\"ר)", plotSize, true);
+  if (units)        rows += dataRow("מספר יח\"ד", units, true);
+  if (buildAbove)   rows += dataRow("שטחי בנייה — מעל הכניסה הקובעת (מ\"ר)", buildAbove, true);
+  if (buildBelow)   rows += dataRow("שטחי בנייה — מתחת לכניסה הקובעת (מ\"ר)", buildBelow, true);
+  if (floorsAbove)  rows += dataRow("מספר קומות — מעל הכניסה הקובעת", floorsAbove, true);
+  if (floorsBelow)  rows += dataRow("מספר קומות — מתחת לכניסה הקובעת", floorsBelow, true);
+  if (buildingType) rows += dataRow("סוג בינוי", buildingType);
+  return rows;
+}
+
+function renderInfoCard(parcelId, merged, geo, rights) {
+  const panel = document.getElementById('result-panel');
+
+  // חילוץ ייעוד (מ-GeoJSON או PDF)
+  const designation = merged["ייעוד"] || findField(merged, PDF_FIELD_MAP.designation) || "";
+
+  // בדיקה אם יש מערך שימושים (מבנה חדש)
+  const uses = rights?.uses || null;
+
+  let rows = '';
+
+  // ייעוד — תמיד ראשון
+  if (designation) {
+    rows += dataRow("ייעוד", designation);
+  }
+
+  if (uses && uses.length > 0) {
+    // ── מצב שימושים (מבנה חדש עם מערך uses) ──
+    uses.forEach((use, idx) => {
+      const useType = findField(use, PDF_FIELD_MAP.use) || `שימוש ${idx + 1}`;
+
+      if (uses.length > 1) {
+        // שימושים מרובים — כותרת לכל שימוש
+        if (idx > 0) rows += `<div class="use-separator"></div>`;
+        rows += `<div class="use-header">🔹 ${useType}</div>`;
+      } else {
+        // שימוש יחיד — שורה רגילה (אם שונה מייעוד)
+        if (useType && useType !== designation) {
+          rows += dataRow("שימוש", useType);
+        }
+      }
+
+      rows += renderUseFields(use);
+    });
+  } else {
+    // ── מצב ישן (ללא מערך uses, שדות ישירות ב-merged) ──
+    const use = findField(merged, PDF_FIELD_MAP.use);
+    if (use && use !== designation) {
+      rows += dataRow("שימוש", use);
+    }
+    rows += renderUseFields(merged);
+  }
+
+  // בניית הכרטיס
+  panel.innerHTML = `
+    <div class="info-card">
+      <div class="card-header">
+        <div class="parcel-num">תא שטח ${parcelId}</div>
+        ${designation ? `<span class="designation-badge" style="background:#4a9eff">${designation}</span>` : ''}
+      </div>
+
+      <div class="card-section">
+        <div class="section-title">מידע</div>
+        ${rows && rows.trim() ? rows : `
+          <div style="color:#556; font-size:0.82rem; padding:4px 0;">
+            אין נתוני זכויות בנייה לתא שטח זה בתדפיס ההוראות
+          </div>`}
+      </div>
+    </div>`;
+}
+
+function dataRow(label, value, highlight = false) {
+  return `
+    <div class="data-row">
+      <span class="data-label">${label}</span>
+      <span class="data-value${highlight ? ' highlight' : ''}">${value}</span>
+    </div>`;
+}
+
+
+// ===================================================================
+//  תקשורת מהמפה (iframe → landing)
+// ===================================================================
+window.addEventListener('message', function(e) {
+  if (!e.data || !e.data.action) return;
+
+  if (e.data.action === 'parcelClicked' && e.data.parcelId) {
+    selectParcel(String(e.data.parcelId));
+    closeSuggestions();
+  }
+});
+
+
+// ===================================================================
+//  טעינת המפה
+// ===================================================================
+document.getElementById('map-frame').addEventListener('load', function () {
+  document.getElementById('map-loading').classList.add('hidden');
+});
+
+
+// ===================================================================
+//  הפעלה
+// ===================================================================
+loadData();
+</script>
+</body>
+</html>

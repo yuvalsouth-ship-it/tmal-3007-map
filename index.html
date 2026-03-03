@@ -1,0 +1,935 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>מפה אינטרקטיבית — תשריט ייעודי קרקע</title>
+
+  <!-- Leaflet -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      direction: rtl;
+      display: flex;
+      height: 100vh;
+      overflow: hidden;
+      background: #1a1a2e;
+    }
+
+    /* ===== SIDEBAR ===== */
+    #sidebar {
+      width: 340px;
+      min-width: 260px;
+      background: #16213e;
+      color: #e0e0e0;
+      display: flex;
+      flex-direction: column;
+      z-index: 1000;
+      box-shadow: -3px 0 12px rgba(0,0,0,0.4);
+    }
+
+    #sidebar-header {
+      background: #0f3460;
+      padding: 16px 18px;
+      border-bottom: 2px solid #e94560;
+    }
+    #sidebar-header h1 {
+      font-size: 1rem;
+      font-weight: 700;
+      color: #fff;
+    }
+    #sidebar-header p {
+      font-size: 0.72rem;
+      color: #a0b4cc;
+      margin-top: 3px;
+    }
+
+    /* Search */
+    #search-box {
+      padding: 12px 14px;
+      border-bottom: 1px solid #2a3a50;
+    }
+    #search-box input {
+      width: 100%;
+      padding: 8px 12px;
+      border-radius: 6px;
+      border: 1px solid #2a3a50;
+      background: #0d1b2a;
+      color: #e0e0e0;
+      font-size: 0.85rem;
+      direction: rtl;
+      outline: none;
+      transition: border 0.2s;
+    }
+    #search-box input:focus {
+      border-color: #4a9eff;
+    }
+    #search-box input::placeholder { color: #556; }
+
+    /* Parcel info panel */
+    #info-panel {
+      flex: 1;
+      overflow-y: auto;
+      padding: 14px;
+    }
+    #info-panel .placeholder {
+      color: #556;
+      font-size: 0.83rem;
+      text-align: center;
+      margin-top: 30px;
+      line-height: 1.7;
+    }
+    #info-panel .placeholder svg {
+      display: block;
+      margin: 0 auto 10px;
+      opacity: 0.3;
+    }
+
+    .info-card {
+      background: #0d1b2a;
+      border-radius: 10px;
+      padding: 14px;
+      border: 1px solid #2a3a50;
+    }
+    .info-card .parcel-id {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: #4a9eff;
+      margin-bottom: 12px;
+      border-bottom: 1px solid #2a3a50;
+      padding-bottom: 8px;
+    }
+    .info-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      padding: 5px 0;
+      border-bottom: 1px solid #1a2a3a;
+      gap: 8px;
+    }
+    .info-row:last-child { border-bottom: none; }
+    .info-label {
+      font-size: 0.75rem;
+      color: #7a8fa0;
+      min-width: 90px;
+      flex-shrink: 0;
+    }
+    .info-value {
+      font-size: 0.82rem;
+      color: #d0e0f0;
+      text-align: left;
+      word-break: break-word;
+    }
+    .badge-designation {
+      display: inline-block;
+      padding: 2px 10px;
+      border-radius: 12px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: #fff;
+    }
+
+    /* Legend */
+    #legend {
+      padding: 12px 14px;
+      border-top: 1px solid #2a3a50;
+      font-size: 0.78rem;
+    }
+    #legend h3 {
+      color: #a0b4cc;
+      margin-bottom: 8px;
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin: 4px 0;
+      cursor: pointer;
+      border-radius: 4px;
+      padding: 2px 4px;
+      transition: background 0.15s;
+    }
+    .legend-item:hover { background: #1a2a3a; }
+    .legend-item.hidden { opacity: 0.4; }
+    .legend-color {
+      width: 16px;
+      height: 16px;
+      border-radius: 3px;
+      flex-shrink: 0;
+      border: 1px solid rgba(255,255,255,0.2);
+    }
+
+    /* Stats bar */
+    #stats-bar {
+      background: #0d1b2a;
+      padding: 6px 14px;
+      font-size: 0.72rem;
+      color: #556;
+      border-top: 1px solid #2a3a50;
+    }
+
+    /* MAP */
+    #map {
+      flex: 1;
+      z-index: 1;
+    }
+
+    /* Leaflet popup RTL */
+    .leaflet-popup-content-wrapper {
+      direction: rtl;
+      border-radius: 8px;
+      font-family: 'Segoe UI', Arial, sans-serif;
+    }
+    .leaflet-popup-content {
+      margin: 10px 14px;
+      font-size: 0.82rem;
+      min-width: 200px;
+    }
+    .popup-title {
+      font-weight: 700;
+      font-size: 0.95rem;
+      margin-bottom: 6px;
+      color: #0f3460;
+    }
+    .popup-row { margin: 3px 0; color: #333; }
+    .popup-label { color: #777; font-size: 0.75rem; }
+
+    /* Parcel labels (tooltips) */
+    .parcel-label {
+      background: transparent !important;
+      border: none !important;
+      box-shadow: none !important;
+      color: #1a1a2e;
+      font-size: 11px;
+      font-weight: 700;
+      text-shadow:
+        1px 1px 0 #fff,
+        -1px -1px 0 #fff,
+        1px -1px 0 #fff,
+        -1px 1px 0 #fff,
+        0 1px 0 #fff,
+        0 -1px 0 #fff;
+      padding: 0 !important;
+      white-space: nowrap;
+    }
+
+    /* Search highlight pulse animation */
+    @keyframes searchPulse {
+      0%   { stroke-opacity: 1; stroke-width: 5; }
+      50%  { stroke-opacity: 0.4; stroke-width: 2; }
+      100% { stroke-opacity: 1; stroke-width: 5; }
+    }
+    .search-highlight {
+      animation: searchPulse 1.2s ease-in-out 3;
+    }
+
+    /* Search result indicator */
+    #search-result-msg {
+      padding: 4px 14px 0;
+      font-size: 0.75rem;
+      min-height: 18px;
+    }
+    #search-result-msg .found {
+      color: #4aff8a;
+    }
+    #search-result-msg .not-found {
+      color: #ff6b6b;
+    }
+
+    /* Responsive */
+    @media (max-width: 600px) {
+      #sidebar { width: 260px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ========= SIDEBAR ========= -->
+<div id="sidebar">
+  <div id="sidebar-header">
+    <h1>🗺️ תשריט ייעודי קרקע</h1>
+    <p>לחץ על תא שטח לצפייה בנתונים</p>
+  </div>
+
+  <div id="search-box">
+    <input type="text" id="search-input" placeholder="חיפוש לפי מספר תא שטח..." />
+  </div>
+  <div id="search-result-msg"></div>
+
+  <div id="info-panel">
+    <div class="placeholder">
+      <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+        <polygon points="3 11 22 2 13 21 11 13 3 11"/>
+      </svg>
+      <p>בחר תא שטח על המפה<br/>לצפייה בפרטי הבעלות</p>
+    </div>
+  </div>
+
+  <div id="legend">
+    <h3>מקרא ייעוד</h3>
+    <div id="legend-items"></div>
+  </div>
+
+  <div id="stats-bar">
+    <span id="stats-text">טוען נתונים...</span>
+  </div>
+</div>
+
+<!-- ========= MAP ========= -->
+<div id="map"></div>
+
+
+<script>
+// ===================================================================
+//  הגדרות
+// ===================================================================
+
+// ===================================================================
+//  צבעים סטנדרטיים לפי קוד MAVAT — תקן מינהל התכנון
+//  מבוסס על טבלת הייעודים הארצית
+// ===================================================================
+const MAVAT_CODE_COLORS = {
+  // מגורים (100-199) — צהוב
+  100: "#FFFF00",  110: "#FFFF00",  120: "#FFFF4D",  130: "#FFE600",
+  140: "#FFCC00",  150: "#FFE066",  160: "#FFD700",  170: "#FFEB3B",
+  180: "#FFF176",  190: "#FFF59D",
+
+  // תעסוקה / תעשייה (200-299) — סגול בהיר
+  200: "#D4A5FF",  210: "#C68EFF",  220: "#B877FF",  230: "#DDB8FF",
+  240: "#C490E0",  250: "#B07ACC",  260: "#DDB8FF",  270: "#E8CCFF",
+
+  // מסחר (300-399) — אדום / כתום-אדום
+  300: "#FF4444",  310: "#FF5555",  320: "#FF6666",  330: "#EE3333",
+  340: "#FF7777",  350: "#FF5252",
+
+  // מבנים ומוסדות ציבור (400-499) — כחול
+  400: "#6699FF",  410: "#5588EE",  420: "#77AAFF",  430: "#4477DD",
+  440: "#3366CC",  450: "#88BBFF",  460: "#2255BB",
+
+  // תשתיות (500-599) — אפור כהה
+  500: "#A0A0A0",  510: "#909090",  520: "#B0B0B0",  530: "#858585",
+  540: "#787878",  550: "#C0C0C0",
+
+  // שטחים פתוחים / שצ"פ (600-699) — ירוק
+  600: "#66CC66",  610: "#77DD77",  620: "#55BB55",  630: "#44AA44",
+  640: "#88DD88",  650: "#5CBF5C",  660: "#6BC76B",  670: "#7BD47B",
+  680: "#8ADB8A",  690: "#99E699",
+
+  // דרכים (700-799) — ורוד / ורדרד (כמו ב-iplan!)
+  700: "#FFB8D0",  710: "#FFC8DC",  720: "#FFA8C0",  730: "#FFD0E0",
+  740: "#FF98B0",  750: "#FFCCDD",  760: "#FFB0C8",
+
+  // מסילות ותחבורה (800-899) — ורוד כהה
+  800: "#FF88AA",  810: "#FF7799",  820: "#FF6688",  830: "#FF99BB",
+
+  // תיירות ונופש (900-999) — חום/כתום
+  900: "#FFAA55",  910: "#FFBB66",  920: "#FFCC88",  930: "#FF9944",
+
+  // מיוחד / אחר
+  1000: "#D0D0D0",
+};
+
+// פונקציית צבע לפי MAVAT_CODE — מחפשת התאמה מדויקת ואז לפי טווח
+function getColorByCode(code) {
+  if (!code) return "#C0C0C0";
+  const num = parseInt(code);
+  if (isNaN(num)) return "#C0C0C0";
+
+  // התאמה מדויקת
+  if (MAVAT_CODE_COLORS[num]) return MAVAT_CODE_COLORS[num];
+
+  // התאמה לפי טווח (מאות)
+  const range = Math.floor(num / 100) * 100;
+  if (MAVAT_CODE_COLORS[range]) return MAVAT_CODE_COLORS[range];
+
+  return "#C0C0C0";
+}
+
+// fallback שמות — למקרים בלי קוד
+const DESIGNATION_COLORS = {
+  "ברירת מחדל"  : "#C0C0C0",
+};
+
+// שדות שיוצגו בפאנל הצד (לפי שם עמודה ב-GeoJSON אחרי התרגום)
+const DISPLAY_FIELDS = [
+  { key: "מספר תא שטח",  label: "מס' תא שטח"    },
+  { key: "ייעוד",         label: "ייעוד"          },
+  { key: "קוד ייעוד",     label: "קוד ייעוד"     },
+  { key: "שטח (דונם)",    label: "שטח (דונם)"    },
+  { key: "שטח (מ\"ר)",    label: "שטח (מ\"ר)"    },
+  { key: "שם תכנית",      label: "שם תכנית"      },
+  { key: "כתובת",         label: "כתובת"          },
+  { key: "בעלות",         label: "בעלות"          },
+  { key: "בעלים",         label: "שם בעלים"       },
+  { key: "גוש",           label: "גוש"            },
+  { key: "חלקה",          label: "חלקה"           },
+  { key: "זכויות בניה",   label: "זכויות בניה"   },
+  { key: "הערות",         label: "הערות"          },
+];
+
+// ===================================================================
+//  אתחול מפה
+// ===================================================================
+const map = L.map('map', {
+  center: [31.7, 34.9],   // ישראל — יתעדכן אוטומטית כשייטענו הנתונים
+  zoom: 13,
+  zoomControl: true,
+});
+
+// === שכבות רקע ===
+
+// 1. OpenStreetMap
+const osmLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  attribution: '© OpenStreetMap',
+  maxZoom: 21,
+});
+
+// 2. שכבת iplan — ייעודי קרקע מקוונות (הצבעים הרשמיים!)
+const iplanLayer = L.tileLayer.wms(
+  'https://ags.iplan.gov.il/arcgisiplan/services/PlanningPublic/Xplan/MapServer/WMSServer', {
+  layers: '0',
+  format: 'image/png',
+  transparent: true,
+  attribution: '© מינהל התכנון',
+  maxZoom: 21,
+});
+
+// 3. לוויין (אורתופוטו ישראל)
+const satelliteLayer = L.tileLayer(
+  'https://israelhiking.osm.org.il/Tiles/Israel_Ortho/{z}/{x}/{y}.jpg', {
+  attribution: '© govmap.gov.il',
+  maxZoom: 19,
+});
+
+// ברירת מחדל: OSM + iplan
+osmLayer.addTo(map);
+iplanLayer.addTo(map);
+
+// בורר שכבות — יעודכן אחרי טעינת הגבול
+const layerControl = L.control.layers({
+  'OpenStreetMap': osmLayer,
+  'לוויין': satelliteLayer,
+}, {
+  'ייעודי קרקע (iplan)': iplanLayer,
+}, { position: 'topleft', collapsed: true }).addTo(map);
+
+// ===================================================================
+//  משתנים גלובליים
+// ===================================================================
+let geojsonLayer  = null;
+let allFeatures   = [];
+let selectedLayer  = null;
+let labelLayer     = null;        // שכבת תוויות מספרי תא שטח
+let searchMarker   = null;        // סמן חיפוש
+let boundaryLayer  = null;        // קו כחול — גבול התכנית
+const hiddenDesignations = new Set();
+
+// ===================================================================
+//  פונקציות עזר
+// ===================================================================
+function getColor(feature) {
+  // עדיפות 1: צבע לפי קוד MAVAT (סטנדרט מינהל התכנון)
+  const code = feature.properties["קוד ייעוד"];
+  if (code) return getColorByCode(code);
+
+  // עדיפות 2: לפי שם ייעוד
+  const designation = feature.properties["ייעוד"] || "";
+  for (const [key, color] of Object.entries(DESIGNATION_COLORS)) {
+    if (designation.includes(key)) return color;
+  }
+  return "#C0C0C0";
+}
+
+function featureStyle(feature) {
+  const designation = feature.properties["ייעוד"] || "";
+  const isHidden = hiddenDesignations.has(designation);
+  return {
+    fillColor   : getColor(feature),
+    weight      : 2,
+    opacity     : 1,
+    color       : '#333',
+    fillOpacity : isHidden ? 0 : 0.15,  // שקוף כמעט — כדי לראות צבעי iplan מתחת
+  };
+}
+
+function highlightStyle(feature) {
+  return {
+    fillColor   : getColor(feature),
+    weight      : 3,
+    opacity     : 1,
+    color       : '#fff',
+    fillOpacity : 0.9,
+  };
+}
+
+// ===================================================================
+//  עדכון פאנל מידע
+// ===================================================================
+function updateInfoPanel(props) {
+  const panel = document.getElementById('info-panel');
+  const color = DESIGNATION_COLORS[props["ייעוד"]] || DESIGNATION_COLORS["ברירת מחדל"];
+
+  let rows = '';
+  for (const field of DISPLAY_FIELDS) {
+    const val = props[field.key];
+    if (val === undefined || val === null || val === '') continue;
+
+    let displayVal = val;
+    if (field.key === "ייעוד") {
+      displayVal = `<span class="badge-designation" style="background:${color}">${val}</span>`;
+    }
+
+    rows += `
+      <div class="info-row">
+        <span class="info-label">${field.label}</span>
+        <span class="info-value">${displayVal}</span>
+      </div>`;
+  }
+
+  // שדות נוספים שאינם ברשימה
+  const knownKeys = new Set(DISPLAY_FIELDS.map(f => f.key));
+  for (const [k, v] of Object.entries(props)) {
+    if (knownKeys.has(k) || !v) continue;
+    rows += `
+      <div class="info-row">
+        <span class="info-label">${k}</span>
+        <span class="info-value">${v}</span>
+      </div>`;
+  }
+
+  panel.innerHTML = `
+    <div class="info-card">
+      <div class="parcel-id">תא שטח ${props["מספר תא שטח"] || "—"}</div>
+      ${rows}
+    </div>`;
+}
+
+function clearInfoPanel() {
+  document.getElementById('info-panel').innerHTML = `
+    <div class="placeholder">
+      <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+        <polygon points="3 11 22 2 13 21 11 13 3 11"/>
+      </svg>
+      <p>בחר תא שטח על המפה<br/>לצפייה בפרטי הבעלות</p>
+    </div>`;
+}
+
+// ===================================================================
+//  אינטראקציה עם שכבות
+// ===================================================================
+function onEachFeature(feature, layer) {
+  // תווית מספר תא שטח
+  const parcelNum = feature.properties["מספר תא שטח"];
+  if (parcelNum) {
+    layer.bindTooltip(String(parcelNum), {
+      permanent  : true,
+      direction  : 'center',
+      className  : 'parcel-label',
+    });
+  }
+
+  layer.on({
+    click: function (e) {
+      // איפוס בחירה קודמת
+      if (selectedLayer) {
+        selectedLayer.setStyle(featureStyle(selectedLayer.feature));
+      }
+      selectedLayer = layer;
+      layer.setStyle(highlightStyle(feature));
+      layer.bringToFront();
+
+      updateInfoPanel(feature.properties);
+      notifyParentParcelClick(feature.properties["מספר תא שטח"]);
+
+      // Popup קצר
+      const id       = feature.properties["מספר תא שטח"] || "";
+      const design   = feature.properties["ייעוד"]        || "";
+      const owner    = feature.properties["בעלות"]        || "";
+      const ownerName = feature.properties["בעלים"]       || "";
+
+      layer.bindPopup(`
+        <div class="popup-title">תא שטח ${id}</div>
+        ${design   ? `<div class="popup-row"><span class="popup-label">ייעוד: </span>${design}</div>`   : ''}
+        ${owner    ? `<div class="popup-row"><span class="popup-label">בעלות: </span>${owner}</div>`    : ''}
+        ${ownerName ? `<div class="popup-row"><span class="popup-label">בעלים: </span>${ownerName}</div>` : ''}
+      `).openPopup();
+
+      L.DomEvent.stopPropagation(e);
+    },
+
+    mouseover: function () {
+      if (layer !== selectedLayer) {
+        layer.setStyle({ weight: 3, fillOpacity: 0.85 });
+        layer.bringToFront();
+        if (boundaryLayer) boundaryLayer.bringToFront();
+      }
+    },
+
+    mouseout: function () {
+      if (layer !== selectedLayer) {
+        layer.setStyle(featureStyle(feature));
+      }
+    },
+  });
+}
+
+// ===================================================================
+//  בניית מקרא
+// ===================================================================
+function buildLegend(features) {
+  const counts = {};
+  for (const f of features) {
+    const d = f.properties["ייעוד"] || "ללא ייעוד";
+    counts[d] = (counts[d] || 0) + 1;
+  }
+
+  const container = document.getElementById('legend-items');
+  container.innerHTML = '';
+
+  for (const [designation, count] of Object.entries(counts)) {
+    const color = DESIGNATION_COLORS[designation] || DESIGNATION_COLORS["ברירת מחדל"];
+    const item = document.createElement('div');
+    item.className = 'legend-item';
+    item.dataset.designation = designation;
+    item.innerHTML = `
+      <div class="legend-color" style="background:${color}"></div>
+      <span>${designation} (${count})</span>`;
+
+    item.addEventListener('click', () => {
+      if (hiddenDesignations.has(designation)) {
+        hiddenDesignations.delete(designation);
+        item.classList.remove('hidden');
+      } else {
+        hiddenDesignations.add(designation);
+        item.classList.add('hidden');
+      }
+      refreshLayerStyles();
+    });
+
+    container.appendChild(item);
+  }
+}
+
+function refreshLayerStyles() {
+  if (!geojsonLayer) return;
+  geojsonLayer.eachLayer(layer => {
+    layer.setStyle(featureStyle(layer.feature));
+  });
+}
+
+// ===================================================================
+//  סטטיסטיקות
+// ===================================================================
+function updateStats(features) {
+  const total = features.length;
+  const withOwner = features.filter(f => f.properties["בעלות"] || f.properties["בעלים"]).length;
+  document.getElementById('stats-text').textContent =
+    `${total} תאי שטח | ${withOwner} עם נתוני בעלות`;
+}
+
+// ===================================================================
+//  טעינת GeoJSON
+// ===================================================================
+function loadGeoJSON(geojson) {
+  allFeatures = geojson.features || [];
+
+  geojsonLayer = L.geoJSON(geojson, {
+    style       : featureStyle,
+    onEachFeature,
+  }).addTo(map);
+
+  // התאמת תצוגה לגבולות הנתונים
+  if (allFeatures.length > 0) {
+    map.fitBounds(geojsonLayer.getBounds(), { padding: [20, 20] });
+  }
+
+  buildLegend(allFeatures);
+  updateStats(allFeatures);
+
+  // הצגת/הסתרת תוויות לפי זום
+  updateLabelVisibility();
+  map.on('zoomend', updateLabelVisibility);
+
+  document.getElementById('stats-text').textContent =
+    `נטענו ${allFeatures.length} תאי שטח`;
+}
+
+// ===================================================================
+//  שליטה על תצוגת תוויות לפי זום
+// ===================================================================
+function updateLabelVisibility() {
+  if (!geojsonLayer) return;
+  const zoom = map.getZoom();
+  const showLabels = zoom >= 15;  // הצג תוויות רק בזום גבוה
+
+  geojsonLayer.eachLayer(layer => {
+    const tooltip = layer.getTooltip();
+    if (!tooltip) return;
+    const el = tooltip.getElement();
+    if (el) {
+      el.style.display = showLabels ? '' : 'none';
+    }
+  });
+}
+
+// ===================================================================
+//  חיפוש משופר — עם סימון ברור של התוצאה
+// ===================================================================
+function clearSearchHighlight() {
+  if (searchMarker) {
+    map.removeLayer(searchMarker);
+    searchMarker = null;
+  }
+}
+
+function highlightSearchResult(layer) {
+  // 1) איפוס בחירה קודמת
+  if (selectedLayer) {
+    selectedLayer.setStyle(featureStyle(selectedLayer.feature));
+  }
+  clearSearchHighlight();
+
+  // 2) סגנון בולט לתא השטח שנמצא
+  selectedLayer = layer;
+  layer.setStyle({
+    fillColor   : '#ff2d55',
+    weight      : 4,
+    opacity     : 1,
+    color       : '#ff2d55',
+    fillOpacity : 0.45,
+    dashArray   : '',
+  });
+  layer.bringToFront();
+
+  // 3) מעגל פועם סביב המרכז
+  const center = layer.getBounds().getCenter();
+  searchMarker = L.circleMarker(center, {
+    radius      : 18,
+    fillColor   : '#ff2d55',
+    fillOpacity : 0.3,
+    color       : '#ff2d55',
+    weight      : 3,
+    className   : 'search-highlight',
+  }).addTo(map);
+
+  // הסרת המעגל אחרי 4 שניות (האנימציה מסתיימת)
+  setTimeout(() => {
+    clearSearchHighlight();
+  }, 4000);
+
+  // 4) זום לתא שטח
+  map.fitBounds(layer.getBounds(), { maxZoom: 18, padding: [40, 40] });
+
+  // 5) עדכון פאנל צד
+  updateInfoPanel(layer.feature.properties);
+}
+
+document.getElementById('search-input').addEventListener('input', function () {
+  const query = this.value.trim();
+  const msgEl = document.getElementById('search-result-msg');
+
+  if (!query) {
+    if (selectedLayer) {
+      selectedLayer.setStyle(featureStyle(selectedLayer.feature));
+      selectedLayer = null;
+    }
+    clearSearchHighlight();
+    clearInfoPanel();
+    msgEl.innerHTML = '';
+    return;
+  }
+
+  if (!geojsonLayer) return;
+
+  // חיפוש: קודם התאמה מדויקת, אח"כ חלקית
+  let exactMatch = null;
+  let partialMatch = null;
+
+  geojsonLayer.eachLayer(layer => {
+    const id = String(layer.feature.properties["מספר תא שטח"] || "");
+    if (id === query) {
+      exactMatch = layer;
+    } else if (!partialMatch && id.includes(query)) {
+      partialMatch = layer;
+    }
+  });
+
+  const found = exactMatch || partialMatch;
+
+  if (found) {
+    const id = found.feature.properties["מספר תא שטח"];
+    msgEl.innerHTML = `<span class="found">✓ נמצא תא שטח ${id}</span>`;
+    highlightSearchResult(found);
+  } else {
+    msgEl.innerHTML = `<span class="not-found">✗ לא נמצא תא שטח "${query}"</span>`;
+    if (selectedLayer) {
+      selectedLayer.setStyle(featureStyle(selectedLayer.feature));
+      selectedLayer = null;
+    }
+    clearSearchHighlight();
+  }
+});
+
+// חיפוש גם ב-Enter (נוחות)
+document.getElementById('search-input').addEventListener('keydown', function (e) {
+  if (e.key === 'Enter') {
+    this.dispatchEvent(new Event('input'));
+  }
+});
+
+// ===================================================================
+//  ניקוי בחירה בלחיצה על הרקע
+// ===================================================================
+map.on('click', function () {
+  if (selectedLayer) {
+    selectedLayer.setStyle(featureStyle(selectedLayer.feature));
+    selectedLayer = null;
+    clearInfoPanel();
+  }
+});
+
+// ===================================================================
+//  טעינת קו כחול (גבול התכנית)
+// ===================================================================
+function loadBoundary() {
+  fetch('data/boundary.geojson')
+    .then(r => {
+      if (!r.ok) throw new Error('לא נמצא');
+      return r.json();
+    })
+    .then(geojson => {
+      boundaryLayer = L.geoJSON(geojson, {
+        style: {
+          color       : '#0055ff',
+          weight      : 5,
+          opacity     : 0.9,
+          fillOpacity : 0,
+          dashArray   : '',
+          lineCap     : 'round',
+          lineJoin    : 'round',
+        },
+        interactive: false,  // לא מגיב ללחיצות — רק הצגה
+      }).addTo(map);
+
+      // שכבת הגבול תמיד מעל הכל
+      boundaryLayer.bringToFront();
+      layerControl.addOverlay(boundaryLayer, 'קו כחול (גבול תכנית)');
+      console.log('✅ קו כחול נטען');
+    })
+    .catch(() => {
+      console.log('ℹ️ אין קובץ boundary.geojson — ממשיך בלי קו כחול');
+    });
+}
+
+// ===================================================================
+//  טעינת קובץ מקומי (גרור או בחר)
+// ===================================================================
+function tryFetchGeoJSON() {
+  fetch('data/parcels_merged.geojson')
+    .then(r => {
+      if (!r.ok) throw new Error('לא נמצא');
+      return r.json();
+    })
+    .then(loadGeoJSON)
+    .catch(() => {
+      // אם אין קובץ — הצג הנחיה
+      document.getElementById('stats-text').textContent =
+        'ממתין לקובץ GeoJSON...';
+      showDropZone();
+    });
+}
+
+function showDropZone() {
+  const panel = document.getElementById('info-panel');
+  panel.innerHTML = `
+    <div class="placeholder" id="drop-zone" style="cursor:pointer; border: 2px dashed #2a3a50; border-radius:10px; padding:20px; margin-top:10px;">
+      <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+        <polyline points="17 8 12 3 7 8"/>
+        <line x1="12" y1="3" x2="12" y2="15"/>
+      </svg>
+      <p style="margin-top:8px">גרור לכאן קובץ<br/><strong>parcels_merged.geojson</strong><br/>או לחץ לבחירה</p>
+      <input type="file" id="file-input" accept=".geojson,.json"
+             style="display:none" />
+    </div>`;
+
+  document.getElementById('drop-zone').addEventListener('click', () => {
+    document.getElementById('file-input').click();
+  });
+
+  document.getElementById('file-input').addEventListener('change', function (e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = evt => {
+      try {
+        const geojson = JSON.parse(evt.target.result);
+        loadGeoJSON(geojson);
+      } catch {
+        alert('קובץ לא תקין — ודא שזהו GeoJSON תקין');
+      }
+    };
+    reader.readAsText(file, 'UTF-8');
+  });
+
+  // Drag & Drop
+  const dz = document.getElementById('drop-zone');
+  dz.addEventListener('dragover', e => { e.preventDefault(); dz.style.borderColor = '#4a9eff'; });
+  dz.addEventListener('dragleave', () => { dz.style.borderColor = '#2a3a50'; });
+  dz.addEventListener('drop', e => {
+    e.preventDefault();
+    dz.style.borderColor = '#2a3a50';
+    const file = e.dataTransfer.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = evt => {
+      try {
+        loadGeoJSON(JSON.parse(evt.target.result));
+      } catch {
+        alert('קובץ לא תקין');
+      }
+    };
+    reader.readAsText(file, 'UTF-8');
+  });
+}
+
+// ===================================================================
+//  גשר postMessage — תקשורת עם עמוד הנחיתה (iframe)
+// ===================================================================
+window.addEventListener('message', function(e) {
+  if (!e.data || !e.data.action) return;
+
+  if (e.data.action === 'selectParcel' && e.data.parcelId) {
+    // עמוד הנחיתה מבקש לסמן תא שטח
+    const input = document.getElementById('search-input');
+    input.value = String(e.data.parcelId);
+    input.dispatchEvent(new Event('input'));
+  }
+});
+
+// שליחת הודעה להורה כשלוחצים על חלקה
+function notifyParentParcelClick(parcelId) {
+  if (window.parent !== window) {
+    window.parent.postMessage({
+      action: 'parcelClicked',
+      parcelId: parcelId,
+    }, '*');
+  }
+}
+
+// ===================================================================
+//  הפעלה
+// ===================================================================
+tryFetchGeoJSON();
+loadBoundary();
+</script>
+</body>
+</html>
