@@ -986,6 +986,13 @@ window.addEventListener('message', function(e) {
 // שליחת הודעה להורה כשלוחצים על חלקה
 function notifyParentParcelClick(parcelId) {
   if (window.parent !== window) {
+    try {
+      // קריאה ישירה לפונקציה בעמוד ההורה (same-origin)
+      if (typeof window.parent.selectParcel === 'function') {
+        window.parent.selectParcel(String(parcelId));
+        return;
+      }
+    } catch (e) { /* cross-origin — fallback to postMessage */ }
     window.parent.postMessage({
       action: 'parcelClicked',
       parcelId: parcelId,
