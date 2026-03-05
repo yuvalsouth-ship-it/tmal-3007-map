@@ -560,7 +560,7 @@ document.addEventListener('click', (e) => {
 // ===================================================================
 //  הצגת כרטיס מידע
 // ===================================================================
-function selectParcel(parcelId) {
+function selectParcel(parcelId, fromMap) {
   searchInput.value = parcelId;
 
   // מיזוג נתונים מ-GeoJSON ומ-PDF
@@ -570,13 +570,15 @@ function selectParcel(parcelId) {
 
   renderInfoCard(parcelId, merged, geo, rights);
 
-  // שליחת הודעה למפה
-  const iframe = document.getElementById('map-frame');
-  if (iframe.contentWindow) {
-    iframe.contentWindow.postMessage({
-      action: 'selectParcel',
-      parcelId: parcelId,
-    }, '*');
+  // שליחת הודעה למפה — רק אם הבחירה היא מחיפוש (לא מלחיצה במפה)
+  if (!fromMap) {
+    const iframe = document.getElementById('map-frame');
+    if (iframe.contentWindow) {
+      iframe.contentWindow.postMessage({
+        action: 'selectParcel',
+        parcelId: parcelId,
+      }, '*');
+    }
   }
 }
 
@@ -714,7 +716,7 @@ window.addEventListener('message', function(e) {
 
   if (e.data.action === 'parcelClicked' && e.data.parcelId) {
     try {
-      selectParcel(String(e.data.parcelId));
+      selectParcel(String(e.data.parcelId), true);
       closeSuggestions();
     } catch (err) {
       console.error('שגיאה בבחירת תא שטח:', err);

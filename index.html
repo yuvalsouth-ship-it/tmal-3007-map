@@ -617,18 +617,20 @@ function onEachFeature(feature, layer) {
       updateInfoPanel(feature.properties);
       notifyParentParcelClick(feature.properties["מספר תא שטח"]);
 
-      // Popup קצר
-      const id       = feature.properties["מספר תא שטח"] || "";
-      const design   = feature.properties["ייעוד"]        || "";
-      const owner    = feature.properties["בעלות"]        || "";
-      const ownerName = feature.properties["בעלים"]       || "";
+      // Popup — רק כשלא בתוך iframe (ב-iframe המידע מוצג בפאנל ההורה)
+      if (!isInIframe) {
+        const id       = feature.properties["מספר תא שטח"] || "";
+        const design   = feature.properties["ייעוד"]        || "";
+        const owner    = feature.properties["בעלות"]        || "";
+        const ownerName = feature.properties["בעלים"]       || "";
 
-      layer.bindPopup(`
-        <div class="popup-title">תא שטח ${id}</div>
-        ${design   ? `<div class="popup-row"><span class="popup-label">ייעוד: </span>${design}</div>`   : ''}
-        ${owner    ? `<div class="popup-row"><span class="popup-label">בעלות: </span>${owner}</div>`    : ''}
-        ${ownerName ? `<div class="popup-row"><span class="popup-label">בעלים: </span>${ownerName}</div>` : ''}
-      `).openPopup();
+        layer.bindPopup(`
+          <div class="popup-title">תא שטח ${id}</div>
+          ${design   ? `<div class="popup-row"><span class="popup-label">ייעוד: </span>${design}</div>`   : ''}
+          ${owner    ? `<div class="popup-row"><span class="popup-label">בעלות: </span>${owner}</div>`    : ''}
+          ${ownerName ? `<div class="popup-row"><span class="popup-label">בעלים: </span>${ownerName}</div>` : ''}
+        `).openPopup();
+      }
 
       L.DomEvent.stopPropagation(e);
     },
@@ -991,7 +993,7 @@ function notifyParentParcelClick(parcelId) {
     try {
       // קריאה ישירה לפונקציה בעמוד ההורה (same-origin)
       if (typeof window.parent.selectParcel === 'function') {
-        window.parent.selectParcel(String(parcelId));
+        window.parent.selectParcel(String(parcelId), true);
         return;
       }
     } catch (e) { /* cross-origin — fallback to postMessage */ }
