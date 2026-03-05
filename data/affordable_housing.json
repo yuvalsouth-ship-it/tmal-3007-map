@@ -1,0 +1,524 @@
+{
+  "parcels": {
+    "100": {
+      "total": 29,
+      "private_rental": 0,
+      "state_rental": 29,
+      "permanent_rental": 0
+    },
+    "102": {
+      "total": 41,
+      "private_rental": 0,
+      "state_rental": 41,
+      "permanent_rental": 0
+    },
+    "106": {
+      "total": 126,
+      "private_rental": 0,
+      "state_rental": 126,
+      "permanent_rental": 0
+    },
+    "108": {
+      "total": 104,
+      "private_rental": 0,
+      "state_rental": 104,
+      "permanent_rental": 0
+    },
+    "109": {
+      "total": 131,
+      "private_rental": 131,
+      "state_rental": 0,
+      "permanent_rental": 0
+    },
+    "110": {
+      "total": 73,
+      "private_rental": 0,
+      "state_rental": 73,
+      "permanent_rental": 0
+    },
+    "111": {
+      "total": 48,
+      "private_rental": 0,
+      "state_rental": 48,
+      "permanent_rental": 0
+    },
+    "112": {
+      "total": 43,
+      "private_rental": 0,
+      "state_rental": 43,
+      "permanent_rental": 0
+    },
+    "114": {
+      "total": 126,
+      "private_rental": 0,
+      "state_rental": 126,
+      "permanent_rental": 0
+    },
+    "115": {
+      "total": 112,
+      "private_rental": 0,
+      "state_rental": 112,
+      "permanent_rental": 0
+    },
+    "116": {
+      "total": 72,
+      "private_rental": 0,
+      "state_rental": 72,
+      "permanent_rental": 0
+    },
+    "118": {
+      "total": 97,
+      "private_rental": 0,
+      "state_rental": 97,
+      "permanent_rental": 0
+    },
+    "119": {
+      "total": 144,
+      "private_rental": 144,
+      "state_rental": 0,
+      "permanent_rental": 0
+    },
+    "120": {
+      "total": 22,
+      "private_rental": 0,
+      "state_rental": 22,
+      "permanent_rental": 0
+    },
+    "121": {
+      "total": 252,
+      "private_rental": 0,
+      "state_rental": 0,
+      "permanent_rental": 252
+    },
+    "123": {
+      "total": 32,
+      "private_rental": 0,
+      "state_rental": 32,
+      "permanent_rental": 0
+    },
+    "126": {
+      "total": 43,
+      "private_rental": 0,
+      "state_rental": 43,
+      "permanent_rental": 0
+    },
+    "127": {
+      "total": 127,
+      "private_rental": 127,
+      "state_rental": 0,
+      "permanent_rental": 0
+    },
+    "128": {
+      "total": 48,
+      "private_rental": 0,
+      "state_rental": 48,
+      "permanent_rental": 0
+    },
+    "131": {
+      "total": 112,
+      "private_rental": 112,
+      "state_rental": 0,
+      "permanent_rental": 0
+    },
+    "132": {
+      "total": 84,
+      "private_rental": 0,
+      "state_rental": 84,
+      "permanent_rental": 0
+    },
+    "133": {
+      "total": 60,
+      "private_rental": 0,
+      "state_rental": 60,
+      "permanent_rental": 0
+    },
+    "135": {
+      "total": 14,
+      "private_rental": 0,
+      "state_rental": 14,
+      "permanent_rental": 0
+    },
+    "136": {
+      "total": 32,
+      "private_rental": 0,
+      "state_rental": 32,
+      "permanent_rental": 0
+    },
+    "137": {
+      "total": 102,
+      "private_rental": 0,
+      "state_rental": 102,
+      "permanent_rental": 0
+    },
+    "138": {
+      "total": 68,
+      "private_rental": 0,
+      "state_rental": 68,
+      "permanent_rental": 0
+    },
+    "139": {
+      "total": 58,
+      "private_rental": 0,
+      "state_rental": 58,
+      "permanent_rental": 0
+    },
+    "141": {
+      "total": 38,
+      "private_rental": 0,
+      "state_rental": 38,
+      "permanent_rental": 0
+    },
+    "144": {
+      "total": 19,
+      "private_rental": 0,
+      "state_rental": 19,
+      "permanent_rental": 0
+    },
+    "145": {
+      "total": 50,
+      "private_rental": 0,
+      "state_rental": 50,
+      "permanent_rental": 0
+    },
+    "146": {
+      "total": 36,
+      "private_rental": 0,
+      "state_rental": 36,
+      "permanent_rental": 0
+    },
+    "147": {
+      "total": 61,
+      "private_rental": 0,
+      "state_rental": 61,
+      "permanent_rental": 0
+    },
+    "148": {
+      "total": 50,
+      "private_rental": 0,
+      "state_rental": 50,
+      "permanent_rental": 0
+    },
+    "149": {
+      "total": 29,
+      "private_rental": 0,
+      "state_rental": 29,
+      "permanent_rental": 0
+    },
+    "150": {
+      "total": 29,
+      "private_rental": 0,
+      "state_rental": 29,
+      "permanent_rental": 0
+    },
+    "151": {
+      "total": 29,
+      "private_rental": 0,
+      "state_rental": 29,
+      "permanent_rental": 0
+    },
+    "153": {
+      "total": 58,
+      "private_rental": 0,
+      "state_rental": 58,
+      "permanent_rental": 0
+    },
+    "154": {
+      "total": 96,
+      "private_rental": 96,
+      "state_rental": 0,
+      "permanent_rental": 0
+    },
+    "156": {
+      "total": 41,
+      "private_rental": 0,
+      "state_rental": 41,
+      "permanent_rental": 0
+    },
+    "160": {
+      "total": 43,
+      "private_rental": 0,
+      "state_rental": 43,
+      "permanent_rental": 0
+    },
+    "162": {
+      "total": 61,
+      "private_rental": 0,
+      "state_rental": 61,
+      "permanent_rental": 0
+    },
+    "163": {
+      "total": 44,
+      "private_rental": 0,
+      "state_rental": 44,
+      "permanent_rental": 0
+    },
+    "166": {
+      "total": 14,
+      "private_rental": 0,
+      "state_rental": 14,
+      "permanent_rental": 0
+    },
+    "167": {
+      "total": 34,
+      "private_rental": 0,
+      "state_rental": 34,
+      "permanent_rental": 0
+    },
+    "168": {
+      "total": 50,
+      "private_rental": 0,
+      "state_rental": 50,
+      "permanent_rental": 0
+    },
+    "169": {
+      "total": 224,
+      "private_rental": 0,
+      "state_rental": 0,
+      "permanent_rental": 224
+    },
+    "170": {
+      "total": 34,
+      "private_rental": 0,
+      "state_rental": 34,
+      "permanent_rental": 0
+    },
+    "171": {
+      "total": 50,
+      "private_rental": 0,
+      "state_rental": 50,
+      "permanent_rental": 0
+    },
+    "172": {
+      "total": 49,
+      "private_rental": 0,
+      "state_rental": 49,
+      "permanent_rental": 0
+    },
+    "173": {
+      "total": 49,
+      "private_rental": 0,
+      "state_rental": 49,
+      "permanent_rental": 0
+    },
+    "176": {
+      "total": 54,
+      "private_rental": 0,
+      "state_rental": 54,
+      "permanent_rental": 0
+    },
+    "178": {
+      "total": 49,
+      "private_rental": 0,
+      "state_rental": 49,
+      "permanent_rental": 0
+    },
+    "179": {
+      "total": 54,
+      "private_rental": 0,
+      "state_rental": 54,
+      "permanent_rental": 0
+    },
+    "180": {
+      "total": 45,
+      "private_rental": 0,
+      "state_rental": 45,
+      "permanent_rental": 0
+    },
+    "184": {
+      "total": 38,
+      "private_rental": 0,
+      "state_rental": 38,
+      "permanent_rental": 0
+    },
+    "185": {
+      "total": 32,
+      "private_rental": 0,
+      "state_rental": 32,
+      "permanent_rental": 0
+    },
+    "186": {
+      "total": 48,
+      "private_rental": 0,
+      "state_rental": 48,
+      "permanent_rental": 0
+    },
+    "187": {
+      "total": 58,
+      "private_rental": 0,
+      "state_rental": 58,
+      "permanent_rental": 0
+    },
+    "190": {
+      "total": 48,
+      "private_rental": 0,
+      "state_rental": 48,
+      "permanent_rental": 0
+    },
+    "191": {
+      "total": 48,
+      "private_rental": 0,
+      "state_rental": 48,
+      "permanent_rental": 0
+    },
+    "195": {
+      "total": 29,
+      "private_rental": 0,
+      "state_rental": 29,
+      "permanent_rental": 0
+    },
+    "196": {
+      "total": 29,
+      "private_rental": 0,
+      "state_rental": 29,
+      "permanent_rental": 0
+    },
+    "207": {
+      "total": 34,
+      "private_rental": 0,
+      "state_rental": 34,
+      "permanent_rental": 0
+    },
+    "208": {
+      "total": 90,
+      "private_rental": 0,
+      "state_rental": 90,
+      "permanent_rental": 0
+    },
+    "210": {
+      "total": 50,
+      "private_rental": 0,
+      "state_rental": 50,
+      "permanent_rental": 0
+    },
+    "211": {
+      "total": 54,
+      "private_rental": 0,
+      "state_rental": 54,
+      "permanent_rental": 0
+    },
+    "212": {
+      "total": 94,
+      "private_rental": 0,
+      "state_rental": 94,
+      "permanent_rental": 0
+    },
+    "213": {
+      "total": 122,
+      "private_rental": 0,
+      "state_rental": 122,
+      "permanent_rental": 0
+    },
+    "214": {
+      "total": 94,
+      "private_rental": 0,
+      "state_rental": 94,
+      "permanent_rental": 0
+    },
+    "215": {
+      "total": 122,
+      "private_rental": 0,
+      "state_rental": 122,
+      "permanent_rental": 0
+    },
+    "217": {
+      "total": 54,
+      "private_rental": 0,
+      "state_rental": 54,
+      "permanent_rental": 0
+    },
+    "220": {
+      "total": 94,
+      "private_rental": 0,
+      "state_rental": 94,
+      "permanent_rental": 0
+    },
+    "221": {
+      "total": 92,
+      "private_rental": 0,
+      "state_rental": 92,
+      "permanent_rental": 0
+    },
+    "222": {
+      "total": 43,
+      "private_rental": 0,
+      "state_rental": 43,
+      "permanent_rental": 0
+    },
+    "224": {
+      "total": 34,
+      "private_rental": 0,
+      "state_rental": 34,
+      "permanent_rental": 0
+    },
+    "225": {
+      "total": 25,
+      "private_rental": 0,
+      "state_rental": 25,
+      "permanent_rental": 0
+    },
+    "227": {
+      "total": 62,
+      "private_rental": 0,
+      "state_rental": 62,
+      "permanent_rental": 0
+    },
+    "228": {
+      "total": 16,
+      "private_rental": 0,
+      "state_rental": 16,
+      "permanent_rental": 0
+    },
+    "230": {
+      "total": 52,
+      "private_rental": 0,
+      "state_rental": 52,
+      "permanent_rental": 0
+    },
+    "233": {
+      "total": 48,
+      "private_rental": 0,
+      "state_rental": 48,
+      "permanent_rental": 0
+    },
+    "234": {
+      "total": 96,
+      "private_rental": 96,
+      "state_rental": 0,
+      "permanent_rental": 0
+    },
+    "236": {
+      "total": 86,
+      "private_rental": 0,
+      "state_rental": 86,
+      "permanent_rental": 0
+    },
+    "238": {
+      "total": 16,
+      "private_rental": 0,
+      "state_rental": 16,
+      "permanent_rental": 0
+    },
+    "240": {
+      "total": 11,
+      "private_rental": 0,
+      "state_rental": 11,
+      "permanent_rental": 0
+    },
+    "241": {
+      "total": 50,
+      "private_rental": 0,
+      "state_rental": 50,
+      "permanent_rental": 0
+    }
+  },
+  "summary": {
+    "total_units": 5359,
+    "total_parcels": 85,
+    "private_rental_total": 706,
+    "state_rental_total": 4177,
+    "permanent_rental_total": 476,
+    "private_rental_parcels": 6,
+    "state_rental_parcels": 77,
+    "permanent_rental_parcels": 2
+  }
+}

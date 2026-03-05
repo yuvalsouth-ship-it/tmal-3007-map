@@ -58,6 +58,10 @@
       border-color: #4a9eff;
       background: rgba(74,158,255,0.1);
     }
+    #header .header-logos {
+      height: 40px;
+      border-radius: 4px;
+    }
 
     /* ===== MAIN LAYOUT ===== */
     #main {
@@ -68,8 +72,8 @@
 
     /* ===== THEME PANEL (RIGHT) ===== */
     #theme-panel {
-      width: 230px;
-      min-width: 200px;
+      width: 200px;
+      min-width: 180px;
       background: #16213e;
       display: flex;
       flex-direction: column;
@@ -80,6 +84,78 @@
 
     .panel-section {
       padding: 16px 14px;
+    }
+
+    /* ===== LEGEND PANEL (SEPARATE COLUMN) ===== */
+    #legend-panel {
+      width: 220px;
+      min-width: 180px;
+      background: #0f1b30;
+      display: flex;
+      flex-direction: column;
+      z-index: 999;
+      border-right: 1px solid #2a3a50;
+      transition: width 0.3s ease, min-width 0.3s ease, padding 0.3s ease, opacity 0.3s ease;
+      overflow: hidden;
+    }
+    #legend-panel.collapsed {
+      width: 0;
+      min-width: 0;
+      padding: 0;
+      opacity: 0;
+      border-right: none;
+    }
+    #legend-panel-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 14px 8px;
+      flex-shrink: 0;
+    }
+    #legend-panel-header .legend-title {
+      margin-bottom: 0;
+    }
+    #legend-toggle-close {
+      background: none;
+      border: 1px solid #2a3a50;
+      border-radius: 6px;
+      color: #7a8fa0;
+      cursor: pointer;
+      font-size: 1rem;
+      padding: 2px 7px;
+      line-height: 1;
+      transition: all 0.2s;
+    }
+    #legend-toggle-close:hover {
+      color: #e94560;
+      border-color: #e94560;
+    }
+    /* Open button — inside theme panel */
+    #legend-toggle-open {
+      display: none;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      width: 100%;
+      padding: 10px 14px;
+      margin-bottom: 0;
+      border: 2px dashed #2a3a50;
+      border-radius: 10px;
+      background: transparent;
+      color: #7a8fa0;
+      font-size: 0.78rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-family: inherit;
+      direction: rtl;
+    }
+    #legend-toggle-open:hover {
+      border-color: #4a9eff;
+      color: #4a9eff;
+    }
+    #legend-toggle-open.visible {
+      display: flex;
     }
     .panel-section-title {
       font-size: 0.72rem;
@@ -151,6 +227,7 @@
       margin-bottom: 10px;
       font-weight: 600;
       letter-spacing: 1px;
+      text-transform: uppercase;
     }
 
     /* Default legend items */
@@ -281,6 +358,24 @@
       pointer-events: none;
     }
 
+    /* ===== COMPOUND LABELS ===== */
+    .compound-label {
+      background: transparent !important;
+      border: none !important;
+      box-shadow: none !important;
+      color: #fff;
+      font-size: 16px;
+      font-weight: 800;
+      text-shadow:
+        2px 2px 0 rgba(0,0,0,0.9),
+        -2px -2px 0 rgba(0,0,0,0.9),
+        2px -2px 0 rgba(0,0,0,0.9),
+        -2px 2px 0 rgba(0,0,0,0.9),
+        0 2px 0 rgba(0,0,0,0.9),
+        0 -2px 0 rgba(0,0,0,0.9);
+      pointer-events: none;
+    }
+
     /* ===== LEAFLET OVERRIDES ===== */
     .leaflet-interactive {
       transition: fill-opacity 0.4s ease, fill 0.4s ease, stroke 0.3s ease, stroke-width 0.3s ease;
@@ -380,11 +475,8 @@
         padding: 10px 8px;
         text-align: center;
       }
-      #legend-container {
-        flex-direction: row;
-        overflow-x: auto;
-        overflow-y: hidden;
-        padding: 8px 10px;
+      #legend-panel {
+        display: none;
       }
     }
   </style>
@@ -396,8 +488,10 @@
 
   <!-- Header -->
   <header id="header">
+    <img src="data/logos.JPG" alt="לוגואים" class="header-logos" />
     <h1>📊 תמ"ל <span>3007</span> — אינפוגרפיקה</h1>
     <div class="nav-links">
+      <a href="instructions.html">📖 הוראות מול תשריט</a>
       <a href="landing.html">🔍 חיפוש זכויות</a>
       <a href="index.html">🗺️ מפה מלאה</a>
     </div>
@@ -425,17 +519,48 @@
           <span class="icon">🏛️</span>
           <span class="label">מבני ציבור</span>
         </button>
+        <button class="theme-btn" data-theme="roads" onclick="setTheme('roads')">
+          <span class="icon">🛣️</span>
+          <span class="label">דרכים</span>
+        </button>
+        <button class="theme-btn" data-theme="compounds" onclick="setTheme('compounds')">
+          <span class="icon">📐</span>
+          <span class="label">מתחמי תכנון</span>
+        </button>
+        <button class="theme-btn" data-theme="municipality" onclick="setTheme('municipality')">
+          <span class="icon">🏙️</span>
+          <span class="label">רשויות</span>
+        </button>
+        <button class="theme-btn" data-theme="ownership" onclick="setTheme('ownership')">
+          <span class="icon">👤</span>
+          <span class="label">בעלויות</span>
+        </button>
+        <button class="theme-btn" data-theme="affordable" onclick="setTheme('affordable')">
+          <span class="icon">🏠</span>
+          <span class="label">דיור בהישג יד</span>
+        </button>
       </div>
 
       <div class="panel-divider"></div>
 
-      <!-- Dynamic Legend -->
-      <div id="legend-container">
-        <div class="legend-title">מקרא</div>
-        <div id="legend-content"></div>
+      <div style="padding: 0 14px 8px;">
+        <button id="legend-toggle-open" onclick="toggleLegendPanel(true)">
+          📋 הצג מקרא
+        </button>
       </div>
 
       <div class="stats-bar" id="stats-bar">טוען נתונים...</div>
+    </aside>
+
+    <!-- Legend Panel (separate column) -->
+    <aside id="legend-panel">
+      <div id="legend-panel-header">
+        <div class="legend-title">מקרא</div>
+        <button id="legend-toggle-close" onclick="toggleLegendPanel(false)" title="סגור מקרא">✕</button>
+      </div>
+      <div id="legend-container">
+        <div id="legend-content"></div>
+      </div>
     </aside>
 
     <!-- Map -->
@@ -516,9 +641,22 @@ let currentTheme = 'default';
 let geojsonLayer = null;
 let geojsonData = null;
 let allFeatures = [];
+let compoundsLayer = null;
+let compoundsData = null;
+
+// צבעי מתחמים
+const COMPOUND_COLORS = {
+  1: '#e94560', 2: '#ff6b35', 3: '#ffd166',
+  4: '#06d6a0', 5: '#118ab2', 6: '#8338ec',
+  7: '#ff006e', 8: '#3a86a7', 9: '#fb5607',
+};
 let buildingRightsData = null;
 let heightLookup = {};
 let globalMaxFloors = 0;
+let municipalityLookup = {};   // parcelId → 'tel_aviv' | 'ramat_hasharon'
+let municipalBoundaryLayer = null;
+let ownershipData = null;      // parcelId → { owners, category, ... }
+let affordableData = null;     // parcelId → { total, private_rental, state_rental, permanent_rental }
 let map = null;
 
 // ===================================================================
@@ -597,11 +735,86 @@ function getStyleForTheme(feature, theme) {
     case 'publicBuildings': {
       const isMatch = (code >= 400 && code < 500);
       return {
-        fillColor:   isMatch ? '#60a5fa' : '#1a1a2e',
+        fillColor:   isMatch ? '#c8864b' : '#1a1a2e',
         weight:      isMatch ? 2.5 : 0.5,
         opacity:     1,
-        color:       isMatch ? '#3b82f6' : '#222',
+        color:       isMatch ? '#a0622e' : '#222',
         fillOpacity: isMatch ? 0.7 : 0.06,
+      };
+    }
+
+    case 'roads': {
+      const designation = (feature.properties["ייעוד"] || "").trim();
+      const isProposed = designation.includes("דרך מוצעת");
+      const isApproved = designation.includes("דרך מאושרת");
+      const isRoad = isProposed || isApproved;
+      return {
+        fillColor:   isRoad ? (isApproved ? '#f472b6' : '#FFB8D0') : '#1a1a2e',
+        weight:      isRoad ? 2.5 : 0.5,
+        opacity:     1,
+        color:       isRoad ? (isApproved ? '#db2777' : '#e88aab') : '#222',
+        fillOpacity: isRoad ? 0.7 : 0.06,
+      };
+    }
+
+    case 'municipality': {
+      const muni = municipalityLookup[parcelId] || 'tel_aviv';
+      const isTlv = (muni === 'tel_aviv');
+      return {
+        fillColor:   isTlv ? '#4a9eff' : '#f59e0b',
+        weight:      1.5,
+        opacity:     1,
+        color:       isTlv ? '#2563eb' : '#d97706',
+        fillOpacity: 0.55,
+      };
+    }
+
+    case 'affordable': {
+      if (!affordableData) return { fillColor: '#1a1a2e', weight: 0.5, opacity: 1, color: '#333', fillOpacity: 0.15 };
+      const aff = affordableData.parcels[parcelId];
+      if (!aff || aff.total === 0) return { fillColor: '#1a1a2e', weight: 0.5, opacity: 1, color: '#222', fillOpacity: 0.08 };
+      // צבע לפי סוג השכרה דומיננטי
+      let affColor = '#f59e0b'; // default amber
+      if (aff.permanent_rental > 0) affColor = '#ef4444';       // אדום — לצמיתות
+      else if (aff.private_rental > 0) affColor = '#3b82f6';    // כחול — פרטי
+      else if (aff.state_rental > 0) affColor = '#f59e0b';      // כתום — מדינה
+      // עוצמה לפי כמות יחידות
+      const intensity = Math.min(aff.total / 250, 1);
+      return {
+        fillColor:   affColor,
+        weight:      2,
+        opacity:     1,
+        color:       '#555',
+        fillOpacity: 0.35 + intensity * 0.5,
+      };
+    }
+
+    case 'ownership': {
+      if (!ownershipData) return { fillColor: '#1a1a2e', weight: 0.5, opacity: 1, color: '#333', fillOpacity: 0.15 };
+      const parcelOwner = ownershipData.parcels[parcelId];
+      if (!parcelOwner) return { fillColor: '#1a1a2e', weight: 0.5, opacity: 1, color: '#333', fillOpacity: 0.1 };
+      const cat = parcelOwner.category;
+      const catData = ownershipData.categories[cat];
+      const ownerColor = catData ? catData.color : '#888';
+      const isMulti = parcelOwner.owners.length > 1;
+      return {
+        fillColor:   ownerColor,
+        weight:      isMulti ? 2.5 : 1.5,
+        opacity:     1,
+        color:       isMulti ? '#fff' : '#444',
+        fillOpacity: 0.7,
+        dashArray:   isMulti ? '4,3' : null,
+      };
+    }
+
+    case 'compounds': {
+      // Make parcels semi-transparent so compound overlay is visible
+      return {
+        fillColor:   '#1a1a2e',
+        weight:      0.5,
+        opacity:     1,
+        color:       '#333',
+        fillOpacity: 0.15,
       };
     }
 
@@ -638,6 +851,30 @@ function getPopupContent(feature) {
   const rows = [];
   if (areaDunam) rows.push(['שטח (דונם)', areaDunam]);
   if (areaSqm) rows.push(['שטח (מ"ר)', areaSqm]);
+
+  // שורות דיור בהישג יד — רק בנושא דיור בהישג יד
+  if (currentTheme === 'affordable' && affordableData) {
+    const aff = affordableData.parcels[parcelId];
+    if (aff && aff.total > 0) {
+      rows.push(['יח"ד להשכרה', String(aff.total)]);
+      if (aff.state_rental > 0) rows.push(['השכרה למדינה (15 שנה)', String(aff.state_rental)]);
+      if (aff.private_rental > 0) rows.push(['השכרה לפרטיים (20 שנה)', String(aff.private_rental)]);
+      if (aff.permanent_rental > 0) rows.push(['השכרה לצמיתות', String(aff.permanent_rental)]);
+    } else {
+      rows.push(['דיור בהישג יד', 'אין יח"ד']);
+    }
+  }
+
+  // שורות נושא בעלויות
+  if (currentTheme === 'ownership' && ownershipData) {
+    const ow = ownershipData.parcels[parcelId];
+    if (ow) {
+      rows.push(['בעלות', ow.owners.join(', ')]);
+      if (ow.owners.length > 1) rows.push(['סוג', 'בעלות מעורבת']);
+    } else {
+      rows.push(['בעלות', 'אין מידע']);
+    }
+  }
 
   // שורות נושא גובה
   if (currentTheme === 'height') {
@@ -727,6 +964,23 @@ function updateLabelVisibility() {
 }
 
 // ===================================================================
+//  פתיחה/סגירה של פאנל מקרא
+// ===================================================================
+function toggleLegendPanel(show) {
+  const panel = document.getElementById('legend-panel');
+  const openBtn = document.getElementById('legend-toggle-open');
+  if (show) {
+    panel.classList.remove('collapsed');
+    openBtn.classList.remove('visible');
+  } else {
+    panel.classList.add('collapsed');
+    openBtn.classList.add('visible');
+  }
+  // Leaflet needs to know the map size changed
+  setTimeout(() => map.invalidateSize(), 350);
+}
+
+// ===================================================================
 //  החלפת נושא
 // ===================================================================
 function setTheme(themeName) {
@@ -746,6 +1000,26 @@ function setTheme(themeName) {
     geojsonLayer.eachLayer(layer => {
       layer.setStyle(getStyleForTheme(layer.feature, themeName));
     });
+  }
+
+  // הצגה/הסתרת שכבת מתחמים
+  if (compoundsLayer) {
+    if (themeName === 'compounds') {
+      compoundsLayer.addTo(map);
+      compoundsLayer.bringToFront();
+    } else {
+      map.removeLayer(compoundsLayer);
+    }
+  }
+
+  // הצגה/הסתרת קו גבול מוניציפלי
+  if (municipalBoundaryLayer) {
+    if (themeName === 'municipality' || themeName === 'compounds') {
+      municipalBoundaryLayer.addTo(map);
+      municipalBoundaryLayer.bringToFront();
+    } else {
+      map.removeLayer(municipalBoundaryLayer);
+    }
   }
 
   // עדכון מקרא
@@ -770,6 +1044,21 @@ function renderLegend(theme) {
       break;
     case 'publicBuildings':
       renderFilterLegend(container, 'publicBuildings');
+      break;
+    case 'roads':
+      renderRoadsLegend(container);
+      break;
+    case 'compounds':
+      renderCompoundsLegend(container);
+      break;
+    case 'municipality':
+      renderMunicipalityLegend(container);
+      break;
+    case 'ownership':
+      renderOwnershipLegend(container);
+      break;
+    case 'affordable':
+      renderAffordableLegend(container);
       break;
   }
 }
@@ -833,8 +1122,8 @@ function renderFilterLegend(container, theme) {
     ? (code) => code >= 600 && code < 700
     : (code) => code >= 400 && code < 500;
 
-  const color = isPublicSpaces ? '#4ade80' : '#60a5fa';
-  const borderColor = isPublicSpaces ? '#22c55e' : '#3b82f6';
+  const color = isPublicSpaces ? '#4ade80' : '#c8864b';
+  const borderColor = isPublicSpaces ? '#22c55e' : '#a0622e';
   const label = isPublicSpaces ? 'שטחים ציבוריים פתוחים' : 'מבנים ומוסדות ציבור';
   const icon = isPublicSpaces ? '🌳' : '🏛️';
 
@@ -865,6 +1154,193 @@ function renderFilterLegend(container, theme) {
         <span>שאר תאי השטח</span>
       </div>
     </div>`;
+}
+
+function renderRoadsLegend(container) {
+  let proposedCount = 0, approvedCount = 0;
+  let proposedArea = 0, approvedArea = 0;
+
+  for (const f of allFeatures) {
+    const d = (f.properties["ייעוד"] || "").trim();
+    const area = parseFloat(f.properties["שטח (דונם)"]) || 0;
+    if (d.includes("דרך מוצעת")) { proposedCount++; proposedArea += area; }
+    else if (d.includes("דרך מאושרת")) { approvedCount++; approvedArea += area; }
+  }
+
+  const total = proposedCount + approvedCount;
+  const totalArea = proposedArea + approvedArea;
+
+  container.innerHTML = `
+    <div class="filter-legend-card" style="border-color:#e88aab">
+      <div class="filter-legend-stat" style="color:#FFB8D0">🛣️ ${total}</div>
+      <div class="filter-legend-label">דרכים בתכנית</div>
+      <div class="filter-legend-detail">
+        <div class="filter-legend-swatch" style="background:#FFB8D0"></div>
+        דרך מוצעת: ${proposedCount} (${proposedArea.toFixed(1)} דונם)
+      </div>
+      <div class="filter-legend-detail">
+        <div class="filter-legend-swatch" style="background:#f472b6"></div>
+        דרך מאושרת: ${approvedCount} (${approvedArea.toFixed(1)} דונם)
+      </div>
+      <div class="filter-legend-detail" style="margin-top:6px; padding-top:6px; border-top:1px solid #1a2a3a;">
+        <div class="filter-legend-swatch" style="background:transparent"></div>
+        סה"כ: ${totalArea.toFixed(1)} דונם
+      </div>
+    </div>
+    <div style="margin-top:12px;">
+      <div class="legend-item">
+        <div class="legend-color" style="background:#1a1a2e; border-color:#333"></div>
+        <span>שאר תאי השטח</span>
+      </div>
+    </div>`;
+}
+
+function renderCompoundsLegend(container) {
+  if (!compoundsData) { container.innerHTML = 'טוען...'; return; }
+  const features = compoundsData.features || [];
+  let html = '';
+  for (const f of features.sort((a,b) => a.properties.compound - b.properties.compound)) {
+    const p = f.properties;
+    const c = COMPOUND_COLORS[p.compound] || '#888';
+    html += `
+      <div class="legend-item" style="padding:5px 0;">
+        <div class="legend-color" style="background:${c}"></div>
+        <span style="flex:1">${p.name}</span>
+      </div>`;
+  }
+  container.innerHTML = html;
+}
+
+function renderMunicipalityLegend(container) {
+  let tlvCount = 0, rsCount = 0;
+  let tlvArea = 0, rsArea = 0;
+
+  for (const f of allFeatures) {
+    const pid = String(f.properties["מספר תא שטח"] || "");
+    const muni = municipalityLookup[pid] || 'tel_aviv';
+    const area = parseFloat(f.properties["שטח (דונם)"]) || 0;
+    if (muni === 'tel_aviv') { tlvCount++; tlvArea += area; }
+    else { rsCount++; rsArea += area; }
+  }
+
+  container.innerHTML = `
+    <div class="filter-legend-card" style="border-color:#2563eb">
+      <div class="filter-legend-stat" style="color:#4a9eff">🏙️ תל אביב</div>
+      <div class="filter-legend-detail">
+        <div class="filter-legend-swatch" style="background:#4a9eff"></div>
+        ${tlvCount} תאי שטח · ${tlvArea.toFixed(1)} דונם
+      </div>
+    </div>
+    <div class="filter-legend-card" style="border-color:#d97706; margin-top:10px;">
+      <div class="filter-legend-stat" style="color:#f59e0b">🏘️ רמת השרון</div>
+      <div class="filter-legend-detail">
+        <div class="filter-legend-swatch" style="background:#f59e0b"></div>
+        ${rsCount} תאי שטח · ${rsArea.toFixed(1)} דונם
+      </div>
+    </div>
+    <div style="margin-top:12px;">
+      <div class="legend-item">
+        <div class="legend-color" style="background:#e94560"></div>
+        <span>קו גבול שיפוט</span>
+      </div>
+    </div>`;
+}
+
+function renderAffordableLegend(container) {
+  if (!affordableData) {
+    container.innerHTML = '<div style="color:#888;padding:10px">טוען נתוני דיור בהישג יד...</div>';
+    return;
+  }
+
+  const s = affordableData.summary;
+
+  container.innerHTML = `
+    <div style="margin-bottom:12px; padding:10px; background:#0d1b2a; border-radius:6px; font-size:0.78rem;">
+      <div style="color:#f59e0b; font-weight:700; margin-bottom:6px;">🏠 יחידות דיור בהישג יד</div>
+      <div style="color:#e0e0e0; font-size:1.1rem; font-weight:700; margin-bottom:4px;">${s.total_units.toLocaleString('he-IL')} יח"ד</div>
+      <div style="color:#a0b4cc;">ב-${s.total_parcels} תאי שטח</div>
+    </div>
+
+    <div class="legend-item">
+      <div class="legend-color" style="background:#f59e0b"></div>
+      <span>השכרה למדינה (15 שנה)</span>
+      <span class="legend-count">${s.state_rental_total.toLocaleString('he-IL')} יח"ד · ${s.state_rental_parcels} מגרשים</span>
+    </div>
+    <div class="legend-item">
+      <div class="legend-color" style="background:#3b82f6"></div>
+      <span>השכרה לפרטיים (20 שנה)</span>
+      <span class="legend-count">${s.private_rental_total.toLocaleString('he-IL')} יח"ד · ${s.private_rental_parcels} מגרשים</span>
+    </div>
+    <div class="legend-item">
+      <div class="legend-color" style="background:#ef4444"></div>
+      <span>השכרה לצמיתות</span>
+      <span class="legend-count">${s.permanent_rental_total.toLocaleString('he-IL')} יח"ד · ${s.permanent_rental_parcels} מגרשים</span>
+    </div>
+
+    <div style="margin-top:10px;">
+      <div class="legend-item">
+        <div class="legend-color" style="background:#1a1a2e; border:1px solid #333;"></div>
+        <span>ללא יח"ד בהישג יד</span>
+      </div>
+    </div>
+
+    <div class="legend-note" style="margin-top:8px; font-size:0.7rem; color:#7a8fa0;">
+      עוצמת הצבע משקפת את כמות היחידות
+    </div>`;
+}
+
+function renderOwnershipLegend(container) {
+  if (!ownershipData) {
+    container.innerHTML = '<div style="color:#888;padding:10px">טוען נתוני בעלויות...</div>';
+    return;
+  }
+
+  const cats = ownershipData.categories;
+  const summary = ownershipData.summary;
+
+  // מיון: מדינה ראשון, אח"כ לפי כמות יורדת, מעורב אחרון
+  const sorted = Object.entries(cats).sort((a, b) => {
+    if (a[0] === 'מדינה') return -1;
+    if (b[0] === 'מדינה') return 1;
+    if (a[0] === 'מעורב') return 1;
+    if (b[0] === 'מעורב') return -1;
+    return b[1].count - a[1].count;
+  });
+
+  let html = `
+    <div style="margin-bottom:12px; padding:8px; background:#0d1b2a; border-radius:6px; font-size:0.78rem;">
+      <div style="color:#4a9eff; font-weight:700; margin-bottom:4px;">סיכום בעלויות</div>
+      <div style="color:#a0b4cc;">ציבורי (מדינה): <span style="color:#3B82F6; font-weight:600;">${summary.public_parcels}</span></div>
+      <div style="color:#a0b4cc;">פרטי: <span style="color:#EF4444; font-weight:600;">${summary.private_parcels}</span></div>
+      <div style="color:#a0b4cc;">מעורב: <span style="color:#A855F7; font-weight:600;">${summary.mixed_parcels}</span></div>
+    </div>`;
+
+  for (const [name, data] of sorted) {
+    const areaStr = data.total_area >= 1000
+      ? (data.total_area / 1000).toFixed(1) + ' דונם'
+      : data.total_area + ' מ"ר';
+    const isPublic = name === 'מדינה';
+    const isMixed = name === 'מעורב';
+    const label = isPublic ? 'מדינה (כולל רשות פיתוח, קק"ל)' : name;
+    const border = isMixed ? 'border: 1px dashed #A855F7;' : '';
+
+    html += `
+      <div class="legend-item" style="${border}">
+        <div class="legend-color" style="background:${data.color}"></div>
+        <span>${label}</span>
+        <span class="legend-count">${data.count}</span>
+      </div>`;
+  }
+
+  html += `
+    <div style="margin-top:10px;">
+      <div class="legend-item">
+        <div class="legend-color" style="background:transparent; border:2px dashed #fff; width:14px; height:14px;"></div>
+        <span>בעלות מעורבת (כמה בעלים)</span>
+      </div>
+    </div>`;
+
+  container.innerHTML = html;
 }
 
 // ===================================================================
@@ -905,6 +1381,90 @@ async function loadAllData() {
     const withRights = Object.keys(buildingRightsData.parcels || {}).length;
     document.getElementById('stats-bar').textContent =
       `${allFeatures.length} תאי שטח | ${withRights} עם נתוני זכויות`;
+
+    // קו כחול — גבול התכנית
+    fetch('data/boundary.geojson')
+      .then(r => r.json())
+      .then(geo => {
+        L.geoJSON(geo, {
+          style: { color: '#4a9eff', weight: 3, opacity: 0.9, fillOpacity: 0, dashArray: '8,6' },
+        }).addTo(map).bringToFront();
+      })
+      .catch(() => console.log('אין boundary.geojson'));
+
+    // טעינת חלוקה מוניציפלית
+    fetch('data/municipality_lookup.json')
+      .then(r => r.json())
+      .then(data => { municipalityLookup = data; })
+      .catch(() => console.log('אין municipality_lookup.json'));
+
+    // קו גבול מוניציפלי (מוסתר כברירת מחדל)
+    fetch('data/municipal_boundary.geojson')
+      .then(r => r.json())
+      .then(geo => {
+        municipalBoundaryLayer = L.geoJSON(geo, {
+          style: { color: '#e94560', weight: 3.5, opacity: 1, fillOpacity: 0, dashArray: '10,6' },
+        });
+        // Don't add to map yet — only when municipality theme is active
+      })
+      .catch(() => console.log('אין municipal_boundary.geojson'));
+
+    // טעינת נתוני בעלויות
+    fetch('data/ownership.json')
+      .then(r => r.json())
+      .then(data => { ownershipData = data; })
+      .catch(() => console.log('אין ownership.json'));
+
+    // טעינת נתוני דיור בהישג יד
+    fetch('data/affordable_housing.json')
+      .then(r => r.json())
+      .then(data => { affordableData = data; })
+      .catch(() => console.log('אין affordable_housing.json'));
+
+    // שכבת מתחמי תכנון (מוסתרת כברירת מחדל)
+    fetch('data/compounds.geojson')
+      .then(r => r.json())
+      .then(geo => {
+        compoundsData = geo;
+        // נתונים מפורטים לכל מתחם
+        const COMPOUND_DATA = {
+          1: { units: '3,150', rows: [['יח"ד','3,150'],['תעסוקה','183,659 מ"ר'],['מסחר','10,795 מ"ר']] },
+          2: { units: '—', rows: [['תעסוקה','574,260 מ"ר'],['לוגיסטיקה','4,300 מ"ר']] },
+          3: { units: '2,312', rows: [['יח"ד','2,312'],['תעסוקה','84,615 מ"ר'],['מסחר','6,840 מ"ר']] },
+          4: { units: '2,186', rows: [['יח"ד','2,186'],['מסחר','4,908 מ"ר']] },
+          5: { units: '4,724', rows: [['יח"ד','4,724'],['תעסוקה','247,492 מ"ר'],['מסחר','16,375 מ"ר']] },
+          6: { units: '2,748', rows: [['סה"כ יח"ד','2,748'],['רמת השרון','982 יח"ד'],['תל אביב','1,766 יח"ד'],['מסחר','4,695 מ"ר']] },
+          7: { units: '2,143', rows: [['סה"כ יח"ד','2,143'],['רמת השרון','2,047 יח"ד'],['תל אביב','96 יח"ד'],['מסחר','8,220 מ"ר']] },
+          8: { units: '2,057', rows: [['יח"ד','2,057'],['תעסוקה','55,407 מ"ר'],['מסחר','9,368 מ"ר']] },
+          9: { units: '—', rows: [['תעסוקה','383,841 מ"ר'],['לוגיסטיקה','4,900 מ"ר']] },
+        };
+
+        compoundsLayer = L.geoJSON(geo, {
+          style: (feature) => ({
+            fillColor: COMPOUND_COLORS[feature.properties.compound] || '#888',
+            weight: 3,
+            opacity: 1,
+            color: '#fff',
+            fillOpacity: 0.35,
+            dashArray: '6,4',
+          }),
+          onEachFeature: (feature, layer) => {
+            const p = feature.properties;
+            const cd = COMPOUND_DATA[p.compound] || { units: '?', rows: [] };
+            const color = COMPOUND_COLORS[p.compound] || '#888';
+            let popupHtml = `<div class="popup-title">${p.name}</div>`;
+            popupHtml += `<span class="popup-badge" style="background:${color}">${p.use}</span>`;
+            popupHtml += `<div class="popup-row"><span class="popup-label">גובה מקסימלי</span><span class="popup-value">${p.max_height} מ' · ${p.max_floors} קומות</span></div>`;
+            for (const [label, value] of cd.rows) {
+              popupHtml += `<div class="popup-row"><span class="popup-label">${label}</span><span class="popup-value">${value}</span></div>`;
+            }
+            layer.bindPopup(popupHtml, { maxWidth: 300 });
+            layer.bindTooltip(p.name, { permanent: true, direction: 'center', className: 'compound-label' });
+          },
+        });
+        // Don't add to map yet — only when theme is active
+      })
+      .catch(() => console.log('אין compounds.geojson'));
 
     // הסתרת טעינה
     document.getElementById('loading').classList.add('hidden');

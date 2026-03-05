@@ -1,0 +1,22 @@
+# Python scripts (build/extraction tools)
+*.py
+
+# Source data files
+*.xlsx
+*.xls
+*.shp
+*.shx
+*.dbf
+*.prj
+*.cpg
+*.qmd
+
+# SHP source folder
+data/תמל_ 3007_קבצי התכנית (SHP)_1/
+
+# Misc
+nul
+__pycache__/
+*.pyc
+.DS_Store
+Thumbs.db
