@@ -996,9 +996,11 @@ function notifyParentParcelClick(parcelId) {
 // ===================================================================
 //  זיהוי iframe — הסתרת סרגל צד כשנטען בתוך עמוד אחר
 // ===================================================================
-if (window.parent !== window) {
+const isInIframe = (window.parent !== window);
+if (isInIframe) {
   document.getElementById('sidebar').classList.add('collapsed');
-  document.getElementById('sidebar-open-btn').classList.remove('visible');
+  document.getElementById('sidebar-open-btn').style.display = 'none';
+  setTimeout(() => map.invalidateSize(), 100);
 }
 
 // ===================================================================

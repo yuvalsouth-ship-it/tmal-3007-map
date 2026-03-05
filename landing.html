@@ -713,8 +713,12 @@ window.addEventListener('message', function(e) {
   if (!e.data || !e.data.action) return;
 
   if (e.data.action === 'parcelClicked' && e.data.parcelId) {
-    selectParcel(String(e.data.parcelId));
-    closeSuggestions();
+    try {
+      selectParcel(String(e.data.parcelId));
+      closeSuggestions();
+    } catch (err) {
+      console.error('שגיאה בבחירת תא שטח:', err);
+    }
   }
 });
 
