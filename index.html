@@ -654,16 +654,18 @@ function onEachFeature(feature, layer) {
 // ===================================================================
 function buildLegend(features) {
   const counts = {};
+  const colorMap = {};
   for (const f of features) {
     const d = f.properties["ייעוד"] || "ללא ייעוד";
     counts[d] = (counts[d] || 0) + 1;
+    if (!colorMap[d]) colorMap[d] = getColor(f);
   }
 
   const container = document.getElementById('legend-items');
   container.innerHTML = '';
 
   for (const [designation, count] of Object.entries(counts)) {
-    const color = DESIGNATION_COLORS[designation] || DESIGNATION_COLORS["ברירת מחדל"];
+    const color = colorMap[designation] || "#C0C0C0";
     const item = document.createElement('div');
     item.className = 'legend-item';
     item.dataset.designation = designation;
