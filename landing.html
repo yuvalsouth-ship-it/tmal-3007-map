@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>תמ"ל 3007 — חיפוש זכויות בנייה</title>
+  <title>תמ"ל 3007 — מידע תכנוני תאי שטח</title>
 
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -292,6 +292,17 @@
       pointer-events: none;
     }
 
+    /* ===== FOOTER ===== */
+    #site-footer {
+      background: #0d1b2a;
+      padding: 6px 24px;
+      text-align: center;
+      font-size: 0.68rem;
+      color: #556;
+      border-top: 1px solid #2a3a50;
+      flex-shrink: 0;
+    }
+
     /* ===== RESPONSIVE ===== */
     @media (max-width: 768px) {
       #content {
@@ -313,7 +324,7 @@
 <!-- ========= HEADER ========= -->
 <header id="top-bar">
   <div>
-    <h1>🏗️ תמ"ל 3007 — חיפוש זכויות בנייה</h1>
+    <h1>🏗️ תמ"ל 3007 — מידע תכנוני תאי שטח</h1>
     <div class="subtitle">חיפוש מידע תכנוני: ייעוד, זכויות בנייה, בעלות ומיקום על המפה</div>
   </div>
   <a class="nav-link" href="index.html" target="_blank">🗺️ מפה מלאה</a>
@@ -361,6 +372,7 @@
 // ===================================================================
 let rightsData = null;   // מ-building_rights.json
 let parcelProps = {};    // מ-parcels_merged.geojson (properties בלבד)
+let ownershipData = null; // מ-ownership.json
 let allParcelIds = [];   // רשימת כל מספרי תא שטח
 let activeSuggestion = -1;
 
@@ -381,7 +393,18 @@ async function loadData() {
     console.log('ℹ️ אין building_rights.json — ממשיך בלי נתוני PDF');
   }
 
-  // 2. טעינת GeoJSON (properties בלבד)
+  // 2. טעינת הקצאות בעלות
+  try {
+    const res = await fetch('data/ownership.json');
+    if (res.ok) {
+      ownershipData = await res.json();
+      console.log(`✅ נטענו ${Object.keys(ownershipData.parcels).length} הקצאות בעלות`);
+    }
+  } catch (e) {
+    console.log('ℹ️ אין ownership.json');
+  }
+
+  // 3. טעינת GeoJSON (properties בלבד)
   try {
     const res = await fetch('data/parcels_merged.geojson');
     if (res.ok) {
@@ -638,6 +661,14 @@ function renderInfoCard(parcelId, merged, geo, rights) {
     rows += renderUseFields(merged);
   }
 
+  // הקצאות בעלות
+  let ownershipRows = '';
+  const ownInfo = ownershipData?.parcels?.[parcelId];
+  if (ownInfo) {
+    ownershipRows += dataRow("קטגוריה", ownInfo.category);
+    if (ownInfo.owners) ownershipRows += dataRow("בעלים", ownInfo.owners);
+  }
+
   // בניית הכרטיס
   panel.innerHTML = `
     <div class="info-card">
@@ -653,6 +684,12 @@ function renderInfoCard(parcelId, merged, geo, rights) {
             אין נתוני זכויות בנייה לתא שטח זה בתדפיס ההוראות
           </div>`}
       </div>
+
+      ${ownershipRows ? `
+      <div class="card-section">
+        <div class="section-title">הקצאות בעלות</div>
+        ${ownershipRows}
+      </div>` : ''}
     </div>`;
 }
 
@@ -691,5 +728,10 @@ document.getElementById('map-frame').addEventListener('load', function () {
 // ===================================================================
 loadData();
 </script>
+
+<footer id="site-footer">
+  אתר זה נוצר על ידי יובל מינמה ומוגש לנוחות המשתמשים בלבד. המידע המחייב הוא זה המופיע במסמכי התכנית המופקדים כדין.
+</footer>
+
 </body>
 </html>

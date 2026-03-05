@@ -58,6 +58,17 @@
       border-color: #4a9eff;
       background: rgba(74,158,255,0.1);
     }
+    /* ===== FOOTER ===== */
+    #site-footer {
+      background: #0d1b2a;
+      padding: 6px 24px;
+      text-align: center;
+      font-size: 0.68rem;
+      color: #556;
+      border-top: 1px solid #2a3a50;
+      flex-shrink: 0;
+    }
+
     #header .header-logos {
       height: 40px;
       border-radius: 4px;
@@ -346,7 +357,7 @@
       border: none !important;
       box-shadow: none !important;
       color: #e0e0e0;
-      font-size: 11px;
+      font-size: 9px;
       font-weight: 700;
       text-shadow:
         1px 1px 0 rgba(0,0,0,0.8),
@@ -356,6 +367,8 @@
         0 1px 0 rgba(0,0,0,0.8),
         0 -1px 0 rgba(0,0,0,0.8);
       pointer-events: none;
+      padding: 0 !important;
+      white-space: nowrap;
     }
 
     /* ===== COMPOUND LABELS ===== */
@@ -492,7 +505,7 @@
     <h1>📊 תמ"ל <span>3007</span> — אינפוגרפיקה</h1>
     <div class="nav-links">
       <a href="instructions.html">📖 הוראות מול תשריט</a>
-      <a href="landing.html">🔍 חיפוש זכויות</a>
+      <a href="landing.html">🔍 מידע תכנוני</a>
       <a href="index.html">🗺️ מפה מלאה</a>
     </div>
   </header>
@@ -533,7 +546,7 @@
         </button>
         <button class="theme-btn" data-theme="ownership" onclick="setTheme('ownership')">
           <span class="icon">👤</span>
-          <span class="label">בעלויות</span>
+          <span class="label">הקצאות בעלות</span>
         </button>
         <button class="theme-btn" data-theme="affordable" onclick="setTheme('affordable')">
           <span class="icon">🏠</span>
@@ -735,7 +748,7 @@ function getStyleForTheme(feature, theme) {
     case 'publicBuildings': {
       const isMatch = (code >= 400 && code < 500);
       return {
-        fillColor:   isMatch ? '#c8864b' : '#1a1a2e',
+        fillColor:   isMatch ? '#8B4513' : '#1a1a2e',
         weight:      isMatch ? 2.5 : 0.5,
         opacity:     1,
         color:       isMatch ? '#a0622e' : '#222',
@@ -1122,8 +1135,8 @@ function renderFilterLegend(container, theme) {
     ? (code) => code >= 600 && code < 700
     : (code) => code >= 400 && code < 500;
 
-  const color = isPublicSpaces ? '#4ade80' : '#c8864b';
-  const borderColor = isPublicSpaces ? '#22c55e' : '#a0622e';
+  const color = isPublicSpaces ? '#4ade80' : '#8B4513';
+  const borderColor = isPublicSpaces ? '#22c55e' : '#6B3410';
   const label = isPublicSpaces ? 'שטחים ציבוריים פתוחים' : 'מבנים ומוסדות ציבור';
   const icon = isPublicSpaces ? '🌳' : '🏛️';
 
@@ -1484,5 +1497,10 @@ async function loadAllData() {
 // ===================================================================
 loadAllData();
 </script>
+
+<footer id="site-footer">
+  אתר זה נוצר על ידי יובל מינמה ומוגש לנוחות המשתמשים בלבד. המידע המחייב הוא זה המופיע במסמכי התכנית המופקדים כדין.
+</footer>
+
 </body>
 </html>
