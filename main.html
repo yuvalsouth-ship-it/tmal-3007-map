@@ -552,6 +552,10 @@
           <span class="icon">🏠</span>
           <span class="label">דיור בהישג יד</span>
         </button>
+        <button class="theme-btn" data-theme="contamination" onclick="setTheme('contamination')">
+          <span class="icon">☣️</span>
+          <span class="label">אתרים חשודים בזיהום</span>
+        </button>
       </div>
 
       <div class="panel-divider"></div>
@@ -656,6 +660,8 @@ let geojsonData = null;
 let allFeatures = [];
 let compoundsLayer = null;
 let compoundsData = null;
+let contaminationLayer = null;
+let contaminationData = null;
 
 // צבעי מתחמים
 const COMPOUND_COLORS = {
@@ -822,6 +828,17 @@ function getStyleForTheme(feature, theme) {
 
     case 'compounds': {
       // Make parcels semi-transparent so compound overlay is visible
+      return {
+        fillColor:   '#1a1a2e',
+        weight:      0.5,
+        opacity:     1,
+        color:       '#333',
+        fillOpacity: 0.15,
+      };
+    }
+
+    case 'contamination': {
+      // Make parcels semi-transparent so contamination overlay is visible
       return {
         fillColor:   '#1a1a2e',
         weight:      0.5,
@@ -1025,6 +1042,16 @@ function setTheme(themeName) {
     }
   }
 
+  // הצגה/הסתרת שכבת אתרי זיהום
+  if (contaminationLayer) {
+    if (themeName === 'contamination') {
+      contaminationLayer.addTo(map);
+      contaminationLayer.bringToFront();
+    } else {
+      map.removeLayer(contaminationLayer);
+    }
+  }
+
   // הצגה/הסתרת קו גבול מוניציפלי
   if (municipalBoundaryLayer) {
     if (themeName === 'municipality' || themeName === 'compounds') {
@@ -1072,6 +1099,9 @@ function renderLegend(theme) {
       break;
     case 'affordable':
       renderAffordableLegend(container);
+      break;
+    case 'contamination':
+      renderContaminationLegend(container);
       break;
   }
 }
@@ -1356,6 +1386,41 @@ function renderOwnershipLegend(container) {
   container.innerHTML = html;
 }
 
+function renderContaminationLegend(container) {
+  if (!contaminationData) { container.innerHTML = 'טוען...'; return; }
+  const features = contaminationData.features || [];
+
+  // ספירת אתרים ייחודיים לפי שם
+  const siteCounts = {};
+  for (const f of features) {
+    const name = f.properties.name || 'לא ידוע';
+    siteCounts[name] = (siteCounts[name] || 0) + 1;
+  }
+
+  let html = `
+    <div style="margin-bottom:12px; padding:10px; background:#0d1b2a; border-radius:6px; font-size:0.78rem;">
+      <div style="color:#e94560; font-weight:700; margin-bottom:6px;">☣️ אתרים חשודים בזיהום קרקע</div>
+      <div style="color:#e0e0e0; font-size:1.1rem; font-weight:700; margin-bottom:4px;">${Object.keys(siteCounts).length} אתרים</div>
+      <div style="color:#a0b4cc;">${features.length} פוליגונים על המפה</div>
+    </div>`;
+
+  for (const [name, count] of Object.entries(siteCounts).sort((a, b) => b[1] - a[1])) {
+    html += `
+      <div class="legend-item">
+        <div class="legend-color" style="background:#e94560"></div>
+        <span>${name}</span>
+        <span class="legend-count">${count > 1 ? count + ' אזורים' : ''}</span>
+      </div>`;
+  }
+
+  html += `
+    <div class="legend-note" style="margin-top:8px; font-size:0.7rem; color:#7a8fa0;">
+      מקור: שכבת קרקעות מזוהמות — xref-zihum karka
+    </div>`;
+
+  container.innerHTML = html;
+}
+
 // ===================================================================
 //  טעינת נתונים
 // ===================================================================
@@ -1478,6 +1543,30 @@ async function loadAllData() {
         // Don't add to map yet — only when theme is active
       })
       .catch(() => console.log('אין compounds.geojson'));
+
+    // שכבת אתרים חשודים בזיהום (מוסתרת כברירת מחדל)
+    fetch('data/contamination_sites.geojson')
+      .then(r => r.json())
+      .then(geo => {
+        contaminationData = geo;
+        contaminationLayer = L.geoJSON(geo, {
+          style: () => ({
+            fillColor: '#e94560',
+            weight: 2.5,
+            opacity: 1,
+            color: '#ff6b81',
+            fillOpacity: 0.45,
+            dashArray: '5,3',
+          }),
+          onEachFeature: (feature, layer) => {
+            const name = feature.properties.name || 'אתר לא מזוהה';
+            layer.bindPopup(`<div class="popup-title">☣️ ${name}</div><span class="popup-badge" style="background:#e94560">אתר חשוד בזיהום</span>`);
+            layer.bindTooltip(name, { permanent: false, direction: 'center', className: 'compound-label' });
+          },
+        });
+        // Don't add to map yet — only when theme is active
+      })
+      .catch(() => console.log('אין contamination_sites.geojson'));
 
     // הסתרת טעינה
     document.getElementById('loading').classList.add('hidden');
