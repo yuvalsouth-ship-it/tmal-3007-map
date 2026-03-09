@@ -274,6 +274,8 @@
       width: 100%;
       height: 100%;
       border: none;
+      position: relative;
+      z-index: 1;
     }
     #map-loading {
       position: absolute;
@@ -729,7 +731,9 @@ window.addEventListener('message', function(e) {
 //  טעינת המפה
 // ===================================================================
 document.getElementById('map-frame').addEventListener('load', function () {
-  document.getElementById('map-loading').classList.add('hidden');
+  // הסרת שכבת הטעינה לחלוטין — כדי שלא תחסום לחיצות על המפה
+  const loading = document.getElementById('map-loading');
+  if (loading) loading.remove();
 });
 
 

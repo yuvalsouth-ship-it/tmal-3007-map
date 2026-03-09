@@ -732,6 +732,12 @@ function loadGeoJSON(geojson) {
 
   document.getElementById('stats-text').textContent =
     `נטענו ${allFeatures.length} תאי שטח`;
+
+  // ב-iframe: הוספת מאזין DOM גולמי כגיבוי — ללכוד לחיצות
+  // גם כשמערכת האירועים של Leaflet לא מתרגמת אותם נכון
+  if (isInIframe) {
+    setupIframeClickFallback();
+  }
 }
 
 // ===================================================================
@@ -1011,7 +1017,57 @@ const isInIframe = (window.parent !== window);
 if (isInIframe) {
   document.getElementById('sidebar').classList.add('collapsed');
   document.getElementById('sidebar-open-btn').style.display = 'none';
+  // עדכון גודל מפה אחרי הסתרת הסרגל
   setTimeout(() => map.invalidateSize(), 100);
+  setTimeout(() => map.invalidateSize(), 500);
+}
+
+// ===================================================================
+//  גיבוי DOM — לחיצות על נתיבי SVG (עוקף את מערכת האירועים של Leaflet)
+//  פותר בעיות בלחיצות ב-iframe, במיוחד במובייל
+// ===================================================================
+function setupIframeClickFallback() {
+  const mapContainer = document.getElementById('map');
+  let lastLeafletClick = 0;
+
+  // סימון כשלחיצת Leaflet כבר טופלה — כדי לא לטפל פעמיים
+  if (geojsonLayer) {
+    geojsonLayer.eachLayer(function(layer) {
+      layer.on('click', function() {
+        lastLeafletClick = Date.now();
+      });
+    });
+  }
+
+  // מאזין DOM גולמי על מיכל המפה — תופס גם לחיצות שLet Leaflet מפספס
+  mapContainer.addEventListener('click', function(e) {
+    // אם Leaflet כבר טיפל בלחיצה — דלג
+    if (Date.now() - lastLeafletClick < 300) return;
+
+    // מצא את האלמנט הנלחץ
+    const target = e.target;
+    if (!target || target.tagName !== 'path' || !target.classList.contains('leaflet-interactive')) return;
+
+    // חפש את השכבה התואמת
+    let found = null;
+    geojsonLayer.eachLayer(function(layer) {
+      if (layer.getElement && layer.getElement() === target) {
+        found = layer;
+      }
+    });
+
+    if (found) {
+      const feature = found.feature;
+      if (selectedLayer) {
+        selectedLayer.setStyle(featureStyle(selectedLayer.feature));
+      }
+      selectedLayer = found;
+      found.setStyle(highlightStyle(feature));
+      found.bringToFront();
+      updateInfoPanel(feature.properties);
+      notifyParentParcelClick(feature.properties["מספר תא שטח"]);
+    }
+  }, true); // capture phase — תופס לפני Leaflet
 }
 
 // ===================================================================
