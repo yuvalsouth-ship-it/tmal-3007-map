@@ -519,13 +519,12 @@ function getColor(feature) {
 function featureStyle(feature) {
   const designation = feature.properties["ייעוד"] || "";
   const isHidden = hiddenDesignations.has(designation);
-  const inIframe = (window.parent !== window);
   return {
     fillColor   : getColor(feature),
     weight      : 2,
     opacity     : 1,
     color       : '#333',
-    fillOpacity : isHidden ? 0 : (inIframe ? 0.75 : 0.15),
+    fillOpacity : isHidden ? 0 : 0.15,  // שקוף כמעט — כדי לראות צבעי iplan מתחת
   };
 }
 
@@ -1019,17 +1018,10 @@ if (isInIframe) {
   document.getElementById('sidebar').classList.add('collapsed');
   document.getElementById('sidebar-open-btn').style.display = 'none';
 
-  // הסרת שכבת iplan — ב-iframe הפוליגונים מציגים את הצבעים בעצמם
-  map.removeLayer(iplanLayer);
-
-  // העלאת שקיפות הפוליגונים כדי שיהיו גלויים ולחיצים
-  if (geojsonLayer) {
-    geojsonLayer.eachLayer(function(layer) {
-      if (layer.feature) {
-        layer.setStyle({ fillOpacity: 0.75 });
-      }
-    });
-  }
+  // וידוא שנתיבי SVG תופסים לחיצות גם כשהם כמעט שקופים
+  const style = document.createElement('style');
+  style.textContent = '.leaflet-interactive { pointer-events: all !important; }';
+  document.head.appendChild(style);
 
   // עדכון גודל מפה אחרי הסתרת הסרגל
   setTimeout(() => map.invalidateSize(), 100);
