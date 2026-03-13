@@ -552,6 +552,10 @@
           <span class="icon">🏠</span>
           <span class="label">דיור בהישג יד</span>
         </button>
+        <button class="theme-btn" data-theme="builtPublic" onclick="setTheme('builtPublic')">
+          <span class="icon">🏢</span>
+          <span class="label">שטחים ציבוריים מבונים</span>
+        </button>
         <button class="theme-btn" data-theme="contamination" onclick="setTheme('contamination')">
           <span class="icon">☣️</span>
           <span class="label">אתרים חשודים בזיהום</span>
@@ -676,6 +680,7 @@ let municipalityLookup = {};   // parcelId → 'tel_aviv' | 'ramat_hasharon'
 let municipalBoundaryLayer = null;
 let ownershipData = null;      // parcelId → { owners, category, ... }
 let affordableData = null;     // parcelId → { total, private_rental, state_rental, permanent_rental }
+let builtPublicLookup = {};    // parcelId → { area: number (מ"ר), shimush: string }
 let map = null;
 
 // ===================================================================
@@ -717,6 +722,32 @@ function buildHeightLookup() {
     if (parcelMax > 0) {
       heightLookup[String(parcelId)] = parcelMax;
       globalMaxFloors = Math.max(globalMaxFloors, parcelMax);
+    }
+  }
+}
+
+// ===================================================================
+//  בניית lookup שטחים ציבוריים מבונים בייעוד סחיר
+// ===================================================================
+function buildBuiltPublicLookup() {
+  builtPublicLookup = {};
+  if (!buildingRightsData?.parcels) return;
+
+  for (const [parcelId, parcelData] of Object.entries(buildingRightsData.parcels)) {
+    const uses = parcelData.uses || [];
+    for (const use of uses) {
+      const shimush = use["שימוש"] || "";
+      if (shimush.includes("ציבור")) {
+        const areaAbove = parseInt(String(use["שטחי בנייה מעל הכניסה הקובעת"] || "0").replace(/[^\d]/g, "")) || 0;
+        const areaBelow = parseInt(String(use["שטחי בנייה מתחת לכניסה הקובעת"] || "0").replace(/[^\d]/g, "")) || 0;
+        builtPublicLookup[String(parcelId)] = {
+          area: areaAbove + areaBelow,
+          areaAbove,
+          areaBelow,
+          shimush,
+        };
+        break;
+      }
     }
   }
 }
@@ -826,6 +857,30 @@ function getStyleForTheme(feature, theme) {
       };
     }
 
+    case 'builtPublic': {
+      const bpData = builtPublicLookup[parcelId];
+      const isNonPublicDesignation = (code < 400 || code >= 700);
+      const isMatch = bpData && isNonPublicDesignation;
+      if (isMatch) {
+        // עוצמה לפי שטח ציבורי
+        const intensity = Math.min(bpData.area / 5000, 1);
+        return {
+          fillColor:   '#a78bfa',
+          weight:      2.5,
+          opacity:     1,
+          color:       '#7c3aed',
+          fillOpacity: 0.4 + intensity * 0.45,
+        };
+      }
+      return {
+        fillColor:   '#1a1a2e',
+        weight:      0.5,
+        opacity:     1,
+        color:       '#222',
+        fillOpacity: 0.06,
+      };
+    }
+
     case 'compounds': {
       // Make parcels semi-transparent so compound overlay is visible
       return {
@@ -903,6 +958,18 @@ function getPopupContent(feature) {
       if (ow.owners.length > 1) rows.push(['סוג', 'בעלות מעורבת']);
     } else {
       rows.push(['בעלות', 'אין מידע']);
+    }
+  }
+
+  // שורות נושא שטחים ציבוריים מבונים
+  if (currentTheme === 'builtPublic') {
+    const bpData = builtPublicLookup[parcelId];
+    if (bpData) {
+      rows.push(['שטח ציבורי מבונה', bpData.area.toLocaleString('he-IL') + ' מ"ר']);
+      if (bpData.areaAbove > 0) rows.push(['מעל כניסה קובעת', bpData.areaAbove.toLocaleString('he-IL') + ' מ"ר']);
+      if (bpData.areaBelow > 0) rows.push(['מתחת לכניסה קובעת', bpData.areaBelow.toLocaleString('he-IL') + ' מ"ר']);
+    } else {
+      rows.push(['שטח ציבורי מבונה', 'אין']);
     }
   }
 
@@ -1099,6 +1166,9 @@ function renderLegend(theme) {
       break;
     case 'affordable':
       renderAffordableLegend(container);
+      break;
+    case 'builtPublic':
+      renderBuiltPublicLegend(container);
       break;
     case 'contamination':
       renderContaminationLegend(container);
@@ -1386,6 +1456,68 @@ function renderOwnershipLegend(container) {
   container.innerHTML = html;
 }
 
+function renderBuiltPublicLegend(container) {
+  // ספירת תאי שטח עם שימוש ציבורי בייעוד סחיר
+  let count = 0;
+  let totalPublicArea = 0;
+  const byDesignation = {};
+
+  for (const f of allFeatures) {
+    const pid = String(f.properties["מספר תא שטח"] || "");
+    const code = parseInt(f.properties["קוד ייעוד"]) || 0;
+    const designation = f.properties["ייעוד"] || "אחר";
+    const bpData = builtPublicLookup[pid];
+    const isNonPublic = (code < 400 || code >= 700);
+
+    if (bpData && isNonPublic) {
+      count++;
+      totalPublicArea += bpData.area;
+      if (!byDesignation[designation]) {
+        byDesignation[designation] = { count: 0, area: 0, code };
+      }
+      byDesignation[designation].count++;
+      byDesignation[designation].area += bpData.area;
+    }
+  }
+
+  let html = `
+    <div class="filter-legend-card" style="border-color:#7c3aed">
+      <div class="filter-legend-stat" style="color:#a78bfa">🏢 ${count}</div>
+      <div class="filter-legend-label">תאי שטח עם שימוש ציבורי מבונה<br/>בייעוד סחיר</div>
+      <div class="filter-legend-detail">
+        <div class="filter-legend-swatch" style="background:#a78bfa"></div>
+        סה"כ שטח ציבורי: ${totalPublicArea.toLocaleString('he-IL')} מ"ר
+      </div>
+    </div>`;
+
+  // פירוט לפי ייעוד
+  const sorted = Object.entries(byDesignation).sort((a, b) => b[1].area - a[1].area);
+  html += '<div style="margin-top:12px;">';
+  for (const [designation, data] of sorted) {
+    const color = getColorByCode(data.code);
+    html += `
+      <div class="legend-item">
+        <div class="legend-color" style="background:${color}"></div>
+        <span>${designation}</span>
+        <span class="legend-count">${data.count} · ${data.area.toLocaleString('he-IL')} מ"ר</span>
+      </div>`;
+  }
+  html += '</div>';
+
+  html += `
+    <div style="margin-top:12px;">
+      <div class="legend-item">
+        <div class="legend-color" style="background:#1a1a2e; border-color:#333"></div>
+        <span>שאר תאי השטח</span>
+      </div>
+    </div>
+    <div class="legend-note" style="margin-top:8px; font-size:0.7rem; color:#7a8fa0;">
+      עוצמת הצבע משקפת את גודל השטח הציבורי המוקצה
+    </div>`;
+
+  container.innerHTML = html;
+}
+
 function renderContaminationLegend(container) {
   if (!contaminationData) { container.innerHTML = 'טוען...'; return; }
   const features = contaminationData.features || [];
@@ -1438,6 +1570,9 @@ async function loadAllData() {
 
     // מיזוג נתוני גובה
     buildHeightLookup();
+
+    // בניית lookup שטחים ציבוריים מבונים
+    buildBuiltPublicLookup();
 
     // הוספת שכבת GeoJSON
     geojsonLayer = L.geoJSON(geojsonData, {
