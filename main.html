@@ -469,25 +469,28 @@
         width: 100%;
         flex-direction: row;
         min-width: auto;
-        max-height: 160px;
-        overflow-x: auto;
-        overflow-y: hidden;
+        max-height: none;
+        overflow: hidden;
       }
       .panel-section {
         display: flex;
-        gap: 8px;
+        flex-wrap: wrap;
+        gap: 6px;
         align-items: flex-start;
-        padding: 10px;
-        flex-shrink: 0;
+        padding: 8px;
+        width: 100%;
       }
       .panel-section-title { display: none; }
       .theme-btn {
-        min-width: 110px;
+        min-width: 0;
+        width: calc(20% - 5px);
         flex-direction: column;
-        font-size: 0.72rem;
-        padding: 10px 8px;
+        font-size: 0.62rem;
+        padding: 6px 4px;
         text-align: center;
+        margin-bottom: 0;
       }
+      .theme-btn .icon { font-size: 1rem; min-width: auto; }
       #legend-panel {
         display: none;
       }
@@ -555,6 +558,10 @@
         <button class="theme-btn" data-theme="contamination" onclick="setTheme('contamination')">
           <span class="icon">☣️</span>
           <span class="label">אתרים חשודים בזיהום</span>
+        </button>
+        <button class="theme-btn" data-theme="publicInTradeable" onclick="setTheme('publicInTradeable')">
+          <span class="icon">🏛️</span>
+          <span class="label">מבני ציבור בשטחים סחירים</span>
         </button>
       </div>
 
@@ -676,6 +683,7 @@ let municipalityLookup = {};   // parcelId → 'tel_aviv' | 'ramat_hasharon'
 let municipalBoundaryLayer = null;
 let ownershipData = null;      // parcelId → { owners, category, ... }
 let affordableData = null;     // parcelId → { total, private_rental, state_rental, permanent_rental }
+let publicInTradeableSet = new Set();  // parcel IDs with public use in tradeable designation
 let map = null;
 
 // ===================================================================
@@ -717,6 +725,30 @@ function buildHeightLookup() {
     if (parcelMax > 0) {
       heightLookup[String(parcelId)] = parcelMax;
       globalMaxFloors = Math.max(globalMaxFloors, parcelMax);
+    }
+  }
+}
+
+function buildPublicInTradeableSet() {
+  publicInTradeableSet = new Set();
+  if (!buildingRightsData?.parcels) return;
+
+  for (const [parcelId, parcelData] of Object.entries(buildingRightsData.parcels)) {
+    const uses = parcelData.uses || [];
+    const hasPublicUse = uses.some(u =>
+      (u["שימוש"] || "").includes("ציבור מבנים ומוסדות")
+    );
+    if (hasPublicUse) {
+      // check that the parcel's designation code is NOT public buildings (400-499)
+      const matchingFeature = allFeatures.find(f =>
+        String(f.properties["מספר תא שטח"]) === String(parcelId)
+      );
+      if (matchingFeature) {
+        const code = parseInt(matchingFeature.properties["קוד ייעוד"]) || 0;
+        if (code < 400 || code >= 500) {
+          publicInTradeableSet.add(String(parcelId));
+        }
+      }
     }
   }
 }
@@ -845,6 +877,17 @@ function getStyleForTheme(feature, theme) {
         opacity:     1,
         color:       '#333',
         fillOpacity: 0.15,
+      };
+    }
+
+    case 'publicInTradeable': {
+      const isMatch = publicInTradeableSet.has(parcelId);
+      return {
+        fillColor:   isMatch ? '#ff6b35' : '#1a1a2e',
+        weight:      isMatch ? 2.5 : 0.5,
+        opacity:     1,
+        color:       isMatch ? '#e55a2b' : '#222',
+        fillOpacity: isMatch ? 0.7 : 0.06,
       };
     }
 
@@ -1103,6 +1146,9 @@ function renderLegend(theme) {
     case 'contamination':
       renderContaminationLegend(container);
       break;
+    case 'publicInTradeable':
+      renderPublicInTradeableLegend(container);
+      break;
   }
 }
 
@@ -1188,6 +1234,37 @@ function renderFilterLegend(container, theme) {
       <div class="filter-legend-label">${label}</div>
       <div class="filter-legend-detail">
         <div class="filter-legend-swatch" style="background:${color}"></div>
+        שטח כולל: ${totalArea.toFixed(1)} דונם
+      </div>
+    </div>
+    <div style="margin-top:12px;">
+      <div class="legend-item">
+        <div class="legend-color" style="background:#1a1a2e; border-color:#333"></div>
+        <span>שאר תאי השטח</span>
+      </div>
+    </div>`;
+}
+
+function renderPublicInTradeableLegend(container) {
+  let count = 0;
+  let totalArea = 0;
+  for (const f of allFeatures) {
+    const pid = String(f.properties["מספר תא שטח"] || "");
+    if (publicInTradeableSet.has(pid)) {
+      count++;
+      totalArea += parseFloat(f.properties["שטח (דונם)"]) || 0;
+    }
+  }
+
+  container.innerHTML = `
+    <div class="filter-legend-card" style="border-color:#e55a2b">
+      <div class="filter-legend-stat" style="color:#ff6b35">🏛️ ${count}</div>
+      <div class="filter-legend-label">מבני ציבור בשטחים סחירים</div>
+      <div class="filter-legend-detail" style="font-size:11px; color:#8899aa; margin-bottom:8px;">
+        שטחים בשימוש ציבורי בייעודים סחירים (לפי טבלה 5)
+      </div>
+      <div class="filter-legend-detail">
+        <div class="filter-legend-swatch" style="background:#ff6b35"></div>
         שטח כולל: ${totalArea.toFixed(1)} דונם
       </div>
     </div>
@@ -1438,6 +1515,9 @@ async function loadAllData() {
 
     // מיזוג נתוני גובה
     buildHeightLookup();
+
+    // בניית סט חלקות עם שימוש ציבורי בייעוד סחיר
+    buildPublicInTradeableSet();
 
     // הוספת שכבת GeoJSON
     geojsonLayer = L.geoJSON(geojsonData, {
