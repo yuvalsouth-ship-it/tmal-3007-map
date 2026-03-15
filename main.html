@@ -682,6 +682,7 @@ let globalMaxFloors = 0;
 let municipalityLookup = {};   // parcelId → 'tel_aviv' | 'ramat_hasharon'
 let municipalBoundaryLayer = null;
 let ownershipData = null;      // parcelId → { owners, category, ... }
+let ownershipFilter = null;    // selected category name for filtering, null = show all
 let affordableData = null;     // parcelId → { total, private_rental, state_rental, permanent_rental }
 let publicInTradeableSet = new Set();  // parcel IDs with public use in tradeable designation
 let map = null;
@@ -848,13 +849,14 @@ function getStyleForTheme(feature, theme) {
       const catData = ownershipData.categories[cat];
       const ownerColor = catData ? catData.color : '#888';
       const isMulti = parcelOwner.owners.length > 1;
+      const filtered = ownershipFilter && cat !== ownershipFilter;
       return {
-        fillColor:   ownerColor,
-        weight:      isMulti ? 2.5 : 1.5,
+        fillColor:   filtered ? '#1a1a2e' : ownerColor,
+        weight:      filtered ? 0.5 : (isMulti ? 2.5 : 1.5),
         opacity:     1,
-        color:       isMulti ? '#fff' : '#444',
-        fillOpacity: 0.7,
-        dashArray:   isMulti ? '4,3' : null,
+        color:       filtered ? '#222' : (isMulti ? '#fff' : '#444'),
+        fillOpacity: filtered ? 0.06 : 0.7,
+        dashArray:   (!filtered && isMulti) ? '4,3' : null,
       };
     }
 
@@ -1058,6 +1060,7 @@ function toggleLegendPanel(show) {
 // ===================================================================
 function setTheme(themeName) {
   currentTheme = themeName;
+  ownershipFilter = null;
 
   // עדכון כפתורים
   document.querySelectorAll('.theme-btn').forEach(btn => {
@@ -1443,9 +1446,14 @@ function renderOwnershipLegend(container) {
     const isMixed = name === 'מעורב';
     const label = isPublic ? 'מדינה (כולל רשות פיתוח, קק"ל)' : name;
     const border = isMixed ? 'border: 1px dashed #A855F7;' : '';
+    const isActive = ownershipFilter === name;
+    const activeStyle = isActive ? 'background:rgba(74,158,255,0.15); border-radius:4px; padding:5px 4px;' : '';
+    const dimStyle = (ownershipFilter && !isActive) ? 'opacity:0.4;' : '';
+    const escapedName = name.replace(/'/g, "\\'");
 
     html += `
-      <div class="legend-item" style="${border}">
+      <div class="legend-item" style="cursor:pointer; ${border} ${activeStyle} ${dimStyle}"
+           onclick="toggleOwnershipFilter('${escapedName}')">
         <div class="legend-color" style="background:${data.color}"></div>
         <span>${label}</span>
         <span class="legend-count">${data.count}</span>
@@ -1459,8 +1467,23 @@ function renderOwnershipLegend(container) {
         <span>בעלות מעורבת (כמה בעלים)</span>
       </div>
     </div>`;
+  if (ownershipFilter) {
+    html += `<div style="margin-top:8px; text-align:center;">
+      <span style="color:#4a9eff; cursor:pointer; font-size:0.72rem;" onclick="toggleOwnershipFilter(null)">↩ הצג הכל</span>
+    </div>`;
+  }
 
   container.innerHTML = html;
+}
+
+function toggleOwnershipFilter(category) {
+  ownershipFilter = (ownershipFilter === category) ? null : category;
+  if (geojsonLayer) {
+    geojsonLayer.eachLayer(layer => {
+      layer.setStyle(getStyleForTheme(layer.feature, currentTheme));
+    });
+  }
+  renderLegend('ownership');
 }
 
 function renderContaminationLegend(container) {
