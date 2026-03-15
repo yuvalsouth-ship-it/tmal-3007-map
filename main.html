@@ -636,7 +636,7 @@ const HEIGHT_STOPS = [
   { max: 10, color: [16, 185, 129] },   // 6–10 — ירוק #10b981
   { max: 18, color: [234, 179, 8]  },   // 11–18 — צהוב #eab308
   { max: 28, color: [249, 115, 22] },   // 19–28 — כתום #f97316
-  { max: 99, color: [239, 68, 68]  },   // 29+ — אדום #ef4444
+  { max: 99, color: [185, 28, 28]  },   // 29+ — אדום כהה #b91c1c
 ];
 
 function getHeightColor(floors) {
@@ -655,7 +655,7 @@ function getHeightColor(floors) {
     }
     prev = stop;
   }
-  return '#ef4444'; // אדום למעלה מ-28
+  return '#b91c1c'; // אדום כהה למעלה מ-28
 }
 
 // ===================================================================
@@ -1185,7 +1185,7 @@ function renderHeightLegend(container) {
   const withData = Object.keys(heightLookup).length;
 
   const ranges = [
-    { label: '29+ קומות', meters: '101.5+ מ\'', color: '#ef4444' },
+    { label: '29+ קומות', meters: '101.5+ מ\'', color: '#b91c1c' },
     { label: '19–28 קומות', meters: '66.5–98 מ\'', color: '#f97316' },
     { label: '11–18 קומות', meters: '38.5–63 מ\'', color: '#eab308' },
     { label: '6–10 קומות', meters: '21–35 מ\'', color: '#10b981' },
