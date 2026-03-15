@@ -1184,27 +1184,25 @@ function renderDefaultLegend(container) {
 function renderHeightLegend(container) {
   const withData = Object.keys(heightLookup).length;
 
-  container.innerHTML = `
-    <div class="gradient-legend">
-      <div class="gradient-bar" style="background: linear-gradient(to top, #06b6d4, #10b981, #eab308, #f97316, #ef4444);"></div>
-      <div class="gradient-ticks">
-        <span>36+ קומות (~126 מ')</span>
-        <span>28 (~98 מ')</span>
-        <span>18 (~63 מ')</span>
-        <span>10 (~35 מ')</span>
-        <span>5 (~17.5 מ')</span>
-        <span>1 קומה (~3.5 מ')</span>
-      </div>
-    </div>
-    <div class="legend-note">
+  const ranges = [
+    { label: '29+ קומות', meters: '101.5+ מ\'', color: '#ef4444' },
+    { label: '19–28 קומות', meters: '66.5–98 מ\'', color: '#f97316' },
+    { label: '11–18 קומות', meters: '38.5–63 מ\'', color: '#eab308' },
+    { label: '6–10 קומות', meters: '21–35 מ\'', color: '#10b981' },
+    { label: '1–5 קומות', meters: '3.5–17.5 מ\'', color: '#06b6d4' },
+    { label: 'ללא מידע', meters: '', color: '#2a2a4a' },
+  ];
+
+  container.innerHTML = ranges.map(r => {
+    const metersHtml = r.meters ? ` <span style="opacity:0.6; font-size:0.85em;">(${r.meters})</span>` : '';
+    return `<div class="legend-item" style="margin-bottom:4px;">
+      <div class="legend-color" style="background:${r.color}; width:18px; height:18px; border-radius:3px;"></div>
+      <span>${r.label}${metersHtml}</span>
+    </div>`;
+  }).join('') + `
+    <div class="legend-note" style="margin-top:8px;">
       📊 ${withData} חלקות עם נתוני גובה מתוך ${allFeatures.length}<br/>
       טווח: 1–${globalMaxFloors} קומות (עד ~${(globalMaxFloors * 3.5).toFixed(0)} מ')
-    </div>
-    <div style="margin-top:10px;">
-      <div class="legend-item">
-        <div class="legend-color" style="background:#2a2a4a"></div>
-        <span>ללא מידע</span>
-      </div>
     </div>`;
 }
 
