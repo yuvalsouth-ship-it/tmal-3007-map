@@ -205,6 +205,10 @@
     .theme-btn.active {
       border-color: #4a9eff;
       background: linear-gradient(135deg, #0f3460, #1a3a6a);
+    }
+    .theme-btn.border-active {
+      outline: 2px dashed #f59e0b;
+      outline-offset: 2px;
       color: #fff;
       box-shadow: 0 0 14px rgba(74, 158, 255, 0.25);
     }
@@ -519,47 +523,48 @@
     <aside id="theme-panel">
       <div class="panel-section">
         <div class="panel-section-title">נושאים</div>
-        <button class="theme-btn active" data-theme="default" onclick="setTheme('default')">
+        <div style="font-size:0.65rem; color:#888; padding:0 14px 4px; text-align:center;">לחיצה = מילוי | Ctrl+לחיצה = גבול</div>
+        <button class="theme-btn active" data-theme="default" onclick="setTheme('default', event)">
           <span class="icon">🎨</span>
           <span class="label">ייעודי קרקע</span>
         </button>
-        <button class="theme-btn" data-theme="height" onclick="setTheme('height')">
+        <button class="theme-btn" data-theme="height" onclick="setTheme('height', event)">
           <span class="icon">🏗️</span>
           <span class="label">גובה בינוי</span>
         </button>
-        <button class="theme-btn" data-theme="publicSpaces" onclick="setTheme('publicSpaces')">
+        <button class="theme-btn" data-theme="publicSpaces" onclick="setTheme('publicSpaces', event)">
           <span class="icon">🌳</span>
           <span class="label">שטחים ציבוריים</span>
         </button>
-        <button class="theme-btn" data-theme="publicBuildings" onclick="setTheme('publicBuildings')">
+        <button class="theme-btn" data-theme="publicBuildings" onclick="setTheme('publicBuildings', event)">
           <span class="icon">🏛️</span>
           <span class="label">מבני ציבור</span>
         </button>
-        <button class="theme-btn" data-theme="roads" onclick="setTheme('roads')">
+        <button class="theme-btn" data-theme="roads" onclick="setTheme('roads', event)">
           <span class="icon">🛣️</span>
           <span class="label">דרכים</span>
         </button>
-        <button class="theme-btn" data-theme="compounds" onclick="setTheme('compounds')">
+        <button class="theme-btn" data-theme="compounds" onclick="setTheme('compounds', event)">
           <span class="icon">📐</span>
           <span class="label">מתחמי תכנון</span>
         </button>
-        <button class="theme-btn" data-theme="municipality" onclick="setTheme('municipality')">
+        <button class="theme-btn" data-theme="municipality" onclick="setTheme('municipality', event)">
           <span class="icon">🏙️</span>
           <span class="label">רשויות</span>
         </button>
-        <button class="theme-btn" data-theme="ownership" onclick="setTheme('ownership')">
+        <button class="theme-btn" data-theme="ownership" onclick="setTheme('ownership', event)">
           <span class="icon">👤</span>
           <span class="label">הקצאות בעלות</span>
         </button>
-        <button class="theme-btn" data-theme="affordable" onclick="setTheme('affordable')">
+        <button class="theme-btn" data-theme="affordable" onclick="setTheme('affordable', event)">
           <span class="icon">🏠</span>
           <span class="label">דיור בהישג יד</span>
         </button>
-        <button class="theme-btn" data-theme="contamination" onclick="setTheme('contamination')">
+        <button class="theme-btn" data-theme="contamination" onclick="setTheme('contamination', event)">
           <span class="icon">☣️</span>
           <span class="label">אתרים חשודים בזיהום</span>
         </button>
-        <button class="theme-btn" data-theme="publicInTradeable" onclick="setTheme('publicInTradeable')">
+        <button class="theme-btn" data-theme="publicInTradeable" onclick="setTheme('publicInTradeable', event)">
           <span class="icon">🏛️</span>
           <span class="label">מבני ציבור בשטחים סחירים</span>
         </button>
@@ -662,6 +667,7 @@ function getHeightColor(floors) {
 //  מצב גלובלי
 // ===================================================================
 let currentTheme = 'default';
+let borderTheme = null;  // נושא גבול נוסף (null = ללא)
 let geojsonLayer = null;
 let geojsonData = null;
 let allFeatures = [];
@@ -906,6 +912,24 @@ function getStyleForTheme(feature, theme) {
 }
 
 // ===================================================================
+//  סגנון משולב — מילוי מנושא אחד + גבול מנושא אחר
+// ===================================================================
+function getCombinedStyle(feature) {
+  const fillStyle = getStyleForTheme(feature, currentTheme);
+  if (!borderTheme || borderTheme === currentTheme) return fillStyle;
+
+  const borderStyle = getStyleForTheme(feature, borderTheme);
+  return {
+    fillColor:   fillStyle.fillColor,
+    fillOpacity: fillStyle.fillOpacity,
+    color:       borderStyle.fillColor,  // משתמש בצבע המילוי של הנושא השני כצבע גבול
+    weight:      3,
+    opacity:     1,
+    dashArray:   borderStyle.dashArray || null,
+  };
+}
+
+// ===================================================================
 //  Popup תוכן לפי נושא
 // ===================================================================
 function getPopupContent(feature) {
@@ -1008,12 +1032,12 @@ function onEachFeature(feature, layer) {
     },
     mouseout: function() {
       if (layer !== selectedLayer) {
-        layer.setStyle(getStyleForTheme(feature, currentTheme));
+        layer.setStyle(getCombinedStyle(feature));
       }
     },
     click: function() {
       if (selectedLayer && selectedLayer !== layer) {
-        selectedLayer.setStyle(getStyleForTheme(selectedLayer.feature, currentTheme));
+        selectedLayer.setStyle(getCombinedStyle(selectedLayer.feature));
       }
       selectedLayer = layer;
       layer.setStyle({ weight: 3, fillOpacity: 0.9, color: '#fff' });
@@ -1058,25 +1082,21 @@ function toggleLegendPanel(show) {
 // ===================================================================
 //  החלפת נושא
 // ===================================================================
-function setTheme(themeName) {
+function setTheme(themeName, evt) {
+  // Ctrl+click or right-click → set border theme
+  if (evt && (evt.ctrlKey || evt.metaKey)) {
+    setBorderTheme(themeName);
+    return;
+  }
+
   currentTheme = themeName;
   ownershipFilter = null;
 
   // עדכון כפתורים
-  document.querySelectorAll('.theme-btn').forEach(btn => {
-    btn.classList.toggle('active', btn.dataset.theme === themeName);
-  });
+  updateThemeButtons();
 
   // רענון סגנונות שכבות
-  if (geojsonLayer) {
-    if (selectedLayer) {
-      selectedLayer.closePopup();
-      selectedLayer = null;
-    }
-    geojsonLayer.eachLayer(layer => {
-      layer.setStyle(getStyleForTheme(layer.feature, themeName));
-    });
-  }
+  reapplyStyles();
 
   // הצגה/הסתרת שכבת מתחמים
   if (compoundsLayer) {
@@ -1109,49 +1129,80 @@ function setTheme(themeName) {
   }
 
   // עדכון מקרא
-  renderLegend(themeName);
+  renderLegend(currentTheme);
+}
+
+function setBorderTheme(themeName) {
+  // לחיצה על אותו נושא → ביטול שכבת גבול
+  borderTheme = (borderTheme === themeName) ? null : themeName;
+  updateThemeButtons();
+  reapplyStyles();
+  renderLegend(currentTheme);
+}
+
+function reapplyStyles() {
+  if (!geojsonLayer) return;
+  if (selectedLayer) {
+    selectedLayer.closePopup();
+    selectedLayer = null;
+  }
+  geojsonLayer.eachLayer(layer => {
+    layer.setStyle(getCombinedStyle(layer.feature));
+  });
+}
+
+function updateThemeButtons() {
+  document.querySelectorAll('.theme-btn').forEach(btn => {
+    const t = btn.dataset.theme;
+    btn.classList.toggle('active', t === currentTheme);
+    btn.classList.toggle('border-active', t === borderTheme);
+  });
 }
 
 // ===================================================================
 //  מקרא דינמי
 // ===================================================================
+const THEME_NAMES = {
+  'default': 'ייעודי קרקע', 'height': 'גובה בינוי', 'publicSpaces': 'שטחים ציבוריים',
+  'publicBuildings': 'מבני ציבור', 'roads': 'דרכים', 'compounds': 'מתחמי תכנון',
+  'municipality': 'רשויות', 'ownership': 'הקצאות בעלות', 'affordable': 'דיור בהישג יד',
+  'contamination': 'אתרים חשודים בזיהום', 'publicInTradeable': 'מבני ציבור בשטחים סחירים',
+};
+
+function renderThemeToContainer(theme, container) {
+  switch (theme) {
+    case 'default': renderDefaultLegend(container); break;
+    case 'height': renderHeightLegend(container); break;
+    case 'publicSpaces': renderFilterLegend(container, 'publicSpaces'); break;
+    case 'publicBuildings': renderFilterLegend(container, 'publicBuildings'); break;
+    case 'roads': renderRoadsLegend(container); break;
+    case 'compounds': renderCompoundsLegend(container); break;
+    case 'municipality': renderMunicipalityLegend(container); break;
+    case 'ownership': renderOwnershipLegend(container); break;
+    case 'affordable': renderAffordableLegend(container); break;
+    case 'contamination': renderContaminationLegend(container); break;
+    case 'publicInTradeable': renderPublicInTradeableLegend(container); break;
+  }
+}
+
 function renderLegend(theme) {
   const container = document.getElementById('legend-content');
 
-  switch (theme) {
-    case 'default':
-      renderDefaultLegend(container);
-      break;
-    case 'height':
-      renderHeightLegend(container);
-      break;
-    case 'publicSpaces':
-      renderFilterLegend(container, 'publicSpaces');
-      break;
-    case 'publicBuildings':
-      renderFilterLegend(container, 'publicBuildings');
-      break;
-    case 'roads':
-      renderRoadsLegend(container);
-      break;
-    case 'compounds':
-      renderCompoundsLegend(container);
-      break;
-    case 'municipality':
-      renderMunicipalityLegend(container);
-      break;
-    case 'ownership':
-      renderOwnershipLegend(container);
-      break;
-    case 'affordable':
-      renderAffordableLegend(container);
-      break;
-    case 'contamination':
-      renderContaminationLegend(container);
-      break;
-    case 'publicInTradeable':
-      renderPublicInTradeableLegend(container);
-      break;
+  if (borderTheme && borderTheme !== theme) {
+    // מקרא כפול: מילוי + גבולות
+    container.innerHTML = `
+      <div style="color:#4a9eff; font-weight:700; font-size:0.8rem; margin-bottom:6px;">🎨 מילוי: ${THEME_NAMES[theme] || theme}</div>
+      <div id="legend-fill-section"></div>
+      <div style="border-top:1px solid #333; margin:10px 0;"></div>
+      <div style="color:#f59e0b; font-weight:700; font-size:0.8rem; margin-bottom:6px;">✏️ גבול: ${THEME_NAMES[borderTheme] || borderTheme}
+        <span style="cursor:pointer; opacity:0.6; margin-right:8px;" onclick="setBorderTheme(null); renderLegend(currentTheme);" title="הסר שכבת גבול">✕</span>
+      </div>
+      <div id="legend-border-section"></div>
+    `;
+    renderThemeToContainer(theme, document.getElementById('legend-fill-section'));
+    renderThemeToContainer(borderTheme, document.getElementById('legend-border-section'));
+  } else {
+    renderThemeToContainer(theme, container);
   }
 }
 
@@ -1476,12 +1527,8 @@ function renderOwnershipLegend(container) {
 
 function toggleOwnershipFilter(category) {
   ownershipFilter = (ownershipFilter === category) ? null : category;
-  if (geojsonLayer) {
-    geojsonLayer.eachLayer(layer => {
-      layer.setStyle(getStyleForTheme(layer.feature, currentTheme));
-    });
-  }
-  renderLegend('ownership');
+  reapplyStyles();
+  renderLegend(currentTheme);
 }
 
 function renderContaminationLegend(container) {
@@ -1542,7 +1589,7 @@ async function loadAllData() {
 
     // הוספת שכבת GeoJSON
     geojsonLayer = L.geoJSON(geojsonData, {
-      style: (feature) => getStyleForTheme(feature, currentTheme),
+      style: (feature) => getCombinedStyle(feature),
       onEachFeature,
     }).addTo(map);
 
