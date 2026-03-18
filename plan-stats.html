@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>תמ"ל 3007 — נתוני תכנית</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      direction: rtl;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+      background: #1a1a2e;
+      color: #e0e0e0;
+    }
+
+    /* ===== HEADER ===== */
+    #header {
+      background: linear-gradient(135deg, #0f3460, #16213e);
+      padding: 12px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 3px solid #e94560;
+      z-index: 1100;
+      flex-shrink: 0;
+    }
+    #header h1 { font-size: 1.1rem; font-weight: 700; color: #fff; }
+    #header h1 span { color: #4a9eff; }
+    #header .header-logos { height: 40px; border-radius: 4px; }
+    #header .nav-links { display: flex; gap: 14px; }
+    #header .nav-links a {
+      color: #a0b4cc; text-decoration: none; font-size: 0.78rem;
+      padding: 5px 12px; border: 1px solid #2a3a50; border-radius: 6px;
+      transition: all 0.25s;
+    }
+    #header .nav-links a:hover {
+      color: #fff; border-color: #4a9eff; background: rgba(74,158,255,0.1);
+    }
+
+    /* ===== MAIN CONTENT ===== */
+    #main {
+      flex: 1;
+      overflow-y: auto;
+      padding: 24px;
+      max-width: 1000px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    /* ===== CARDS ===== */
+    .card {
+      background: #0d1b2a;
+      border-radius: 12px;
+      border: 1px solid #2a3a50;
+      margin-bottom: 20px;
+      overflow: hidden;
+    }
+    .card-header {
+      padding: 14px 18px;
+      background: linear-gradient(135deg, #0f3460, #162850);
+      border-bottom: 2px solid #e94560;
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: #fff;
+    }
+    .card-body { padding: 16px 18px; }
+
+    /* ===== TABLES ===== */
+    .stats-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.82rem;
+    }
+    .stats-table th {
+      text-align: right;
+      padding: 8px 10px;
+      color: #7a8fa0;
+      font-weight: 600;
+      border-bottom: 1px solid #2a3a50;
+      font-size: 0.75rem;
+    }
+    .stats-table td {
+      padding: 7px 10px;
+      border-bottom: 1px solid #1a2a3a;
+    }
+    .stats-table tr:last-child td { border-bottom: none; }
+    .stats-table .total-row {
+      font-weight: 700;
+      color: #4a9eff;
+      border-top: 2px solid #2a3a50;
+    }
+    .stats-table .num { text-align: left; direction: ltr; font-variant-numeric: tabular-nums; }
+
+    /* Bar */
+    .bar-cell { position: relative; }
+    .bar-bg {
+      position: absolute; top: 3px; bottom: 3px; right: 0;
+      border-radius: 4px; opacity: 0.2;
+    }
+
+    /* ===== STAT BOXES ===== */
+    .stat-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 12px;
+    }
+    .stat-box {
+      background: #16213e;
+      border-radius: 8px;
+      padding: 14px;
+      text-align: center;
+      border: 1px solid #2a3a50;
+    }
+    .stat-box .label {
+      font-size: 0.72rem;
+      color: #7a8fa0;
+      margin-bottom: 6px;
+    }
+    .stat-box .value {
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: #4aff8a;
+    }
+    .stat-box .sub {
+      font-size: 0.7rem;
+      color: #a0b4cc;
+      margin-top: 4px;
+    }
+
+    /* Color dot */
+    .color-dot {
+      display: inline-block;
+      width: 12px; height: 12px;
+      border-radius: 3px;
+      margin-left: 6px;
+      vertical-align: middle;
+    }
+
+    /* ===== FOOTER ===== */
+    #site-footer {
+      background: #0d1b2a;
+      padding: 6px 24px;
+      text-align: center;
+      font-size: 0.68rem;
+      color: #556;
+      border-top: 1px solid #2a3a50;
+      flex-shrink: 0;
+    }
+
+    /* Loading */
+    .loading { text-align: center; padding: 40px; color: #7a8fa0; }
+
+    /* ===== RESPONSIVE ===== */
+    @media (max-width: 768px) {
+      #header { flex-direction: column; gap: 8px; padding: 10px 14px; }
+      #header .nav-links { flex-wrap: wrap; gap: 6px; }
+      #main { padding: 14px; }
+      .stat-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+  </style>
+</head>
+<body>
+  <header id="header">
+    <img src="data/logos.JPG" alt="לוגואים" class="header-logos" />
+    <h1>📊 תמ"ל <span>3007</span> — נתוני תכנית</h1>
+    <div class="nav-links">
+      <a href="main.html">📊 אינפוגרפיקה</a>
+      <a href="instructions.html">📖 הוראות מול תשריט</a>
+      <a href="landing.html">🔍 מידע תכנוני</a>
+      <a href="index.html">🗺️ מפה מלאה</a>
+    </div>
+  </header>
+
+  <main id="main">
+    <div class="loading" id="loading">טוען נתוני תכנית...</div>
+    <div id="content" style="display:none">
+
+      <!-- 1. שטחי ייעוד -->
+      <div class="card">
+        <div class="card-header">📐 שטחי ייעוד</div>
+        <div class="card-body">
+          <table class="stats-table" id="designation-table">
+            <thead>
+              <tr><th>ייעוד</th><th>קוד</th><th class="num">שטח (דונם)</th><th class="num">אחוז</th><th style="width:30%"></th></tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- 2. זכויות בנייה -->
+      <div class="card">
+        <div class="card-header">🏗️ סך זכויות בנייה לפי שימוש</div>
+        <div class="card-body">
+          <table class="stats-table" id="rights-table">
+            <thead>
+              <tr><th>שימוש</th><th class="num">שטח בנייה מעל (מ"ר)</th><th class="num">שטח בנייה מתחת (מ"ר)</th><th class="num">סה"כ (מ"ר)</th><th class="num">תאי שטח</th></tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- 3. יח"ד -->
+      <div class="card">
+        <div class="card-header">🏠 יחידות דיור</div>
+        <div class="card-body">
+          <div class="stat-grid" id="units-grid"></div>
+        </div>
+      </div>
+
+      <!-- 4. דיור בהישג יד -->
+      <div class="card">
+        <div class="card-header">🏘️ דיור בהישג יד</div>
+        <div class="card-body">
+          <div class="stat-grid" id="affordable-grid"></div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <footer id="site-footer">
+    אתר זה נוצר על ידי יובל מינמה ומוגש לנוחות המשתמשים בלבד. המידע המחייב הוא זה המופיע במסמכי התכנית המופקדים כדין.
+  </footer>
+
+  <script>
+const MAVAT_CODE_COLORS = {
+  100: "#FFFF00", 110: "#FFFF00", 120: "#FFFF4D", 130: "#FFE600",
+  140: "#FFCC00", 150: "#FFE066", 160: "#FFD700", 170: "#FFEB3B",
+  180: "#FFF176", 190: "#FFF59D",
+  200: "#D4A5FF", 210: "#C68EFF", 220: "#B877FF", 230: "#DDB8FF",
+  240: "#C490E0", 250: "#B07ACC", 260: "#DDB8FF", 270: "#E8CCFF",
+  300: "#FF4444", 310: "#FF5555", 320: "#FF6666", 330: "#EE3333",
+  340: "#FF7777", 350: "#FF5252",
+  400: "#8B4513", 410: "#A0522D", 420: "#9B6A3D", 430: "#7B3F00",
+  440: "#6B3410", 450: "#A67B5B", 460: "#5C3317",
+  500: "#A0A0A0", 510: "#909090", 520: "#B0B0B0", 530: "#858585",
+  540: "#787878", 550: "#C0C0C0",
+  600: "#66CC66", 610: "#77DD77", 620: "#55BB55", 630: "#44AA44",
+  640: "#88DD88", 650: "#5CBF5C", 660: "#6BC76B", 670: "#7BD47B",
+  680: "#8ADB8A", 690: "#99E699",
+  700: "#FFB8D0", 710: "#FFC8DC", 720: "#FFA8C0", 730: "#FFD0E0",
+  740: "#FF98B0", 750: "#FFCCDD", 760: "#FFB0C8",
+  800: "#FF88AA", 810: "#FF7799", 820: "#FF6688", 830: "#FF99BB",
+  900: "#FFAA55", 910: "#FFBB66", 920: "#FFCC88", 930: "#FF9944",
+  1000: "#D0D0D0", 1050: "#D0D0D0",
+};
+
+function getColorByCode(code) {
+  if (!code) return "#C0C0C0";
+  const num = parseInt(code);
+  if (isNaN(num)) return "#C0C0C0";
+  if (MAVAT_CODE_COLORS[num]) return MAVAT_CODE_COLORS[num];
+  const range = Math.floor(num / 100) * 100;
+  if (MAVAT_CODE_COLORS[range]) return MAVAT_CODE_COLORS[range];
+  return "#C0C0C0";
+}
+
+function fmt(n) { return n.toLocaleString('he-IL'); }
+function fmtDec(n, d) { return n.toLocaleString('he-IL', { minimumFractionDigits: d, maximumFractionDigits: d }); }
+
+async function loadData() {
+  const [parcelsRes, rightsRes, affordableRes, muniRes] = await Promise.all([
+    fetch('data/parcels_merged.geojson').then(r => r.json()),
+    fetch('data/building_rights.json').then(r => r.json()),
+    fetch('data/affordable_housing.json').then(r => r.json()),
+    fetch('data/municipality_lookup.json').then(r => r.json()),
+  ]);
+
+  // === 1. שטחי ייעוד ===
+  const designationMap = {};
+  let totalArea = 0;
+  for (const f of parcelsRes.features) {
+    const p = f.properties;
+    const name = (p["ייעוד"] || "אחר").trim();
+    const code = parseInt(p["קוד ייעוד"]) || 0;
+    const area = parseFloat(p["שטח (דונם)"]) || 0;
+    if (!designationMap[name]) designationMap[name] = { area: 0, code, count: 0 };
+    designationMap[name].area += area;
+    designationMap[name].count++;
+    totalArea += area;
+  }
+
+  const designations = Object.entries(designationMap)
+    .map(([name, d]) => ({ name, ...d, pct: (d.area / totalArea) * 100 }))
+    .sort((a, b) => b.area - a.area);
+
+  const tbody1 = document.querySelector('#designation-table tbody');
+  for (const d of designations) {
+    const color = getColorByCode(d.code);
+    tbody1.innerHTML += `<tr>
+      <td><span class="color-dot" style="background:${color}"></span>${d.name}</td>
+      <td class="num">${d.code}</td>
+      <td class="num">${fmtDec(d.area, 2)}</td>
+      <td class="num">${fmtDec(d.pct, 1)}%</td>
+      <td class="bar-cell"><div class="bar-bg" style="width:${d.pct}%; background:${color}"></div></td>
+    </tr>`;
+  }
+  tbody1.innerHTML += `<tr class="total-row">
+    <td>סה"כ</td><td></td>
+    <td class="num">${fmtDec(totalArea, 2)}</td>
+    <td class="num">100%</td><td></td>
+  </tr>`;
+
+  // === 2. זכויות בנייה ===
+  const useMap = {};
+  for (const [id, parcel] of Object.entries(rightsRes.parcels)) {
+    if (!parcel.uses) continue;
+    for (const use of parcel.uses) {
+      const name = (use["שימוש"] || "אחר").trim();
+      if (!useMap[name]) useMap[name] = { above: 0, below: 0, parcels: new Set() };
+      useMap[name].above += parseFloat(use["שטחי בנייה מעל הכניסה הקובעת"]) || 0;
+      useMap[name].below += parseFloat(use["שטחי בנייה מתחת לכניסה הקובעת"]) || 0;
+      useMap[name].parcels.add(id);
+    }
+  }
+
+  const uses = Object.entries(useMap)
+    .map(([name, d]) => ({ name, ...d, total: d.above + d.below, parcelCount: d.parcels.size }))
+    .sort((a, b) => b.total - a.total);
+
+  const tbody2 = document.querySelector('#rights-table tbody');
+  let totalAbove = 0, totalBelow = 0, totalAll = 0;
+  for (const u of uses) {
+    totalAbove += u.above; totalBelow += u.below; totalAll += u.total;
+    tbody2.innerHTML += `<tr>
+      <td>${u.name}</td>
+      <td class="num">${fmt(Math.round(u.above))}</td>
+      <td class="num">${fmt(Math.round(u.below))}</td>
+      <td class="num">${fmt(Math.round(u.total))}</td>
+      <td class="num">${u.parcelCount}</td>
+    </tr>`;
+  }
+  tbody2.innerHTML += `<tr class="total-row">
+    <td>סה"כ</td>
+    <td class="num">${fmt(Math.round(totalAbove))}</td>
+    <td class="num">${fmt(Math.round(totalBelow))}</td>
+    <td class="num">${fmt(Math.round(totalAll))}</td>
+    <td></td>
+  </tr>`;
+
+  // === 3. יח"ד ===
+  let totalUnits = 0;
+  let totalResAbove = 0;
+  let totalResAll = 0;
+  const unitsByMuni = { tel_aviv: 0, ramat_hasharon: 0 };
+  let residentialArea = 0; // דונם
+
+  for (const [id, parcel] of Object.entries(rightsRes.parcels)) {
+    if (!parcel.uses) continue;
+    for (const use of parcel.uses) {
+      const units = parseInt(use["מספר יח \" ד"]) || 0;
+      if (units > 0) {
+        totalUnits += units;
+        totalResAbove += parseFloat(use["שטחי בנייה מעל הכניסה הקובעת"]) || 0;
+        totalResAll += (parseFloat(use["שטחי בנייה מעל הכניסה הקובעת"]) || 0) +
+                       (parseFloat(use["שטחי בנייה מתחת לכניסה הקובעת"]) || 0);
+        const muni = muniRes[id] || 'tel_aviv';
+        unitsByMuni[muni] = (unitsByMuni[muni] || 0) + units;
+      }
+    }
+  }
+
+  // שטח מגורים — תאי שטח עם ייעוד מגורים
+  for (const f of parcelsRes.features) {
+    const p = f.properties;
+    const code = parseInt(p["קוד ייעוד"]) || 0;
+    if (code >= 100 && code < 200) {
+      residentialArea += parseFloat(p["שטח (דונם)"]) || 0;
+    }
+  }
+
+  const densityNet = totalUnits / residentialArea;
+  const densityGross = totalUnits / totalArea;
+  const avgGross = totalResAll / totalUnits;
+  const avgMain = totalResAbove / totalUnits;
+
+  const grid = document.getElementById('units-grid');
+  grid.innerHTML = `
+    <div class="stat-box">
+      <div class="label">סה"כ יח"ד</div>
+      <div class="value">${fmt(totalUnits)}</div>
+    </div>
+    <div class="stat-box">
+      <div class="label">תל אביב</div>
+      <div class="value">${fmt(unitsByMuni.tel_aviv)}</div>
+    </div>
+    <div class="stat-box">
+      <div class="label">רמת השרון</div>
+      <div class="value">${fmt(unitsByMuni.ramat_hasharon)}</div>
+    </div>
+    <div class="stat-box">
+      <div class="label">צפיפות נטו</div>
+      <div class="value">${fmtDec(densityNet, 1)}</div>
+      <div class="sub">יח"ד / דונם מגורים</div>
+    </div>
+    <div class="stat-box">
+      <div class="label">צפיפות ברוטו</div>
+      <div class="value">${fmtDec(densityGross, 1)}</div>
+      <div class="sub">יח"ד / דונם כולל</div>
+    </div>
+    <div class="stat-box">
+      <div class="label">ממוצע שטח יח"ד ברוטו</div>
+      <div class="value">${fmtDec(avgGross, 1)}</div>
+      <div class="sub">מ"ר</div>
+    </div>
+    <div class="stat-box">
+      <div class="label">ממוצע שטח יח"ד עיקרי</div>
+      <div class="value">${fmtDec(avgMain, 1)}</div>
+      <div class="sub">מ"ר</div>
+    </div>
+  `;
+
+  // === 4. דיור בהישג יד ===
+  const s = affordableRes.summary;
+  const affGrid = document.getElementById('affordable-grid');
+  affGrid.innerHTML = `
+    <div class="stat-box">
+      <div class="label">סה"כ יח"ד דיור בהישג יד</div>
+      <div class="value">${fmt(s.total_units)}</div>
+      <div class="sub">${s.total_parcels} תאי שטח</div>
+    </div>
+    <div class="stat-box">
+      <div class="label">השכרה למדינה (15 שנה)</div>
+      <div class="value">${fmt(s.state_rental_total)}</div>
+      <div class="sub">${s.state_rental_parcels} תאי שטח</div>
+    </div>
+    <div class="stat-box">
+      <div class="label">השכרה פרטית (20 שנה)</div>
+      <div class="value">${fmt(s.private_rental_total)}</div>
+      <div class="sub">${s.private_rental_parcels} תאי שטח</div>
+    </div>
+    <div class="stat-box">
+      <div class="label">השכרה לצמיתות</div>
+      <div class="value">${fmt(s.permanent_rental_total)}</div>
+      <div class="sub">${s.permanent_rental_parcels} תאי שטח</div>
+    </div>
+  `;
+
+  // Show content
+  document.getElementById('loading').style.display = 'none';
+  document.getElementById('content').style.display = 'block';
+}
+
+loadData().catch(err => {
+  document.getElementById('loading').textContent = 'שגיאה בטעינת נתונים: ' + err.message;
+  console.error(err);
+});
+  </script>
+</body>
+</html>
