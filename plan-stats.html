@@ -178,7 +178,31 @@
     <div class="loading" id="loading">טוען נתוני תכנית...</div>
     <div id="content" style="display:none">
 
-      <!-- 1. שטחי ייעוד -->
+      <!-- 1. יח"ד -->
+      <div class="card">
+        <div class="card-header">🏠 יחידות דיור</div>
+        <div class="card-body">
+          <div class="stat-grid" id="units-grid"></div>
+        </div>
+      </div>
+
+      <!-- 2. דיור בהישג יד -->
+      <div class="card">
+        <div class="card-header">🏘️ דיור בהישג יד</div>
+        <div class="card-body">
+          <div class="stat-grid" id="affordable-grid"></div>
+        </div>
+      </div>
+
+      <!-- 3. טיפוסי בינוי -->
+      <div class="card">
+        <div class="card-header">🏗️ טיפוסי בינוי</div>
+        <div class="card-body">
+          <div class="stat-grid" id="building-type-grid"></div>
+        </div>
+      </div>
+
+      <!-- 4. שטחי ייעוד -->
       <div class="card">
         <div class="card-header">📐 שטחי ייעוד</div>
         <div class="card-body">
@@ -191,7 +215,7 @@
         </div>
       </div>
 
-      <!-- 2. זכויות בנייה -->
+      <!-- 5. זכויות בנייה -->
       <div class="card">
         <div class="card-header">🏗️ סך זכויות בנייה לפי שימוש</div>
         <div class="card-body">
@@ -201,22 +225,6 @@
             </thead>
             <tbody></tbody>
           </table>
-        </div>
-      </div>
-
-      <!-- 3. יח"ד -->
-      <div class="card">
-        <div class="card-header">🏠 יחידות דיור</div>
-        <div class="card-body">
-          <div class="stat-grid" id="units-grid"></div>
-        </div>
-      </div>
-
-      <!-- 4. דיור בהישג יד -->
-      <div class="card">
-        <div class="card-header">🏘️ דיור בהישג יד</div>
-        <div class="card-body">
-          <div class="stat-grid" id="affordable-grid"></div>
         </div>
       </div>
 
@@ -379,6 +387,8 @@ async function loadData() {
   const avgGross = totalResAll / totalUnits;
   const avgMain = totalResAbove / totalUnits;
 
+  const avgUnitSize = 85; // מ"ר - גודל יח"ד ממוצע
+
   const grid = document.getElementById('units-grid');
   grid.innerHTML = `
     <div class="stat-box">
@@ -392,6 +402,11 @@ async function loadData() {
     <div class="stat-box">
       <div class="label">רמת השרון</div>
       <div class="value">${fmt(unitsByMuni.ramat_hasharon)}</div>
+    </div>
+    <div class="stat-box">
+      <div class="label">גודל יח"ד ממוצע</div>
+      <div class="value">${avgUnitSize}</div>
+      <div class="sub">מ"ר</div>
     </div>
     <div class="stat-box">
       <div class="label">צפיפות נטו</div>
@@ -438,6 +453,66 @@ async function loadData() {
       <div class="label">השכרה לצמיתות</div>
       <div class="value">${fmt(s.permanent_rental_total)}</div>
       <div class="sub">${s.permanent_rental_parcels} תאי שטח</div>
+    </div>
+  `;
+
+  // === 5. טיפוסי בינוי ===
+  const buildingTypes = { tower: new Set(), urban: new Set() };
+  let towerUnits = 0, urbanUnits = 0;
+  for (const [id, parcel] of Object.entries(rightsRes.parcels)) {
+    if (!parcel.uses) continue;
+    for (const use of parcel.uses) {
+      const bldg = (use["בניין / מקום"] || "").trim();
+      const units = parseInt(use["מספר יח \" ד"]) || 0;
+      if (bldg.includes("מגדלי")) {
+        buildingTypes.tower.add(id);
+        towerUnits += units;
+      } else if (bldg.includes("מרקמי")) {
+        buildingTypes.urban.add(id);
+        urbanUnits += units;
+      }
+    }
+  }
+
+  const btGrid = document.getElementById('building-type-grid');
+  btGrid.innerHTML = `
+    <div class="stat-box">
+      <div class="label">מבנים מגדליים</div>
+      <div class="value">${buildingTypes.tower.size}</div>
+      <div class="sub">תאי שטח</div>
+    </div>
+    <div class="stat-box">
+      <div class="label">מבנים מרקמיים</div>
+      <div class="value">${buildingTypes.urban.size}</div>
+      <div class="sub">תאי שטח</div>
+    </div>
+    <div class="stat-box">
+      <div class="label">יח"ד בבינוי מגדלי</div>
+      <div class="value">${fmt(towerUnits)}</div>
+    </div>
+    <div class="stat-box">
+      <div class="label">יח"ד בבינוי מרקמי</div>
+      <div class="value">${fmt(urbanUnits)}</div>
+    </div>
+    <div class="stat-box">
+      <div class="label">גרעין מגדלי</div>
+      <div class="value">25</div>
+      <div class="sub">מ"ר</div>
+    </div>
+    <div class="stat-box">
+      <div class="label">גרעין מרקמי</div>
+      <div class="value">12</div>
+      <div class="sub">מ"ר</div>
+    </div>
+    <div class="stat-box">
+      <div class="label">תוספת ברוטו — מגדלי</div>
+      <div class="value">610</div>
+      <div class="sub">מ"ר למבנה</div>
+    </div>
+    <div class="stat-box">
+      <div class="label">תוספת ברוטו — מרקמי</div>
+      <div class="value">270</div>
+      <div class="sub">מ"ר למבנה</div>
     </div>
   `;
 
