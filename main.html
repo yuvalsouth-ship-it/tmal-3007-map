@@ -561,6 +561,10 @@
           <span class="icon">🏠</span>
           <span class="label">דיור בהישג יד</span>
         </button>
+        <button class="theme-btn" data-theme="buildingType" onclick="setTheme('buildingType', event)">
+          <span class="icon">🏗️</span>
+          <span class="label">טיפוסי בינוי</span>
+        </button>
         <button class="theme-btn" data-theme="contamination" onclick="setTheme('contamination', event)">
           <span class="icon">☣️</span>
           <span class="label">אתרים חשודים בזיהום</span>
@@ -864,6 +868,29 @@ function getStyleForTheme(feature, theme) {
         color:       filtered ? '#222' : (isMulti ? '#fff' : '#444'),
         fillOpacity: filtered ? 0.06 : 0.7,
         dashArray:   (!filtered && isMulti) ? '4,3' : null,
+      };
+    }
+
+    case 'buildingType': {
+      if (!buildingRightsData) return { fillColor: '#1a1a2e', weight: 0.5, opacity: 1, color: '#333', fillOpacity: 0.15 };
+      const brParcel = buildingRightsData.parcels[parcelId];
+      if (!brParcel || !brParcel.uses) return { fillColor: '#1a1a2e', weight: 0.5, opacity: 1, color: '#222', fillOpacity: 0.08 };
+      let hasTower = false, hasUrban = false;
+      for (const use of brParcel.uses) {
+        const bldg = (use["בניין / מקום"] || "").trim();
+        if (bldg.includes("מגדלי")) hasTower = true;
+        if (bldg.includes("מרקמי")) hasUrban = true;
+      }
+      let btColor = '#1a1a2e', btOpacity = 0.08;
+      if (hasTower && hasUrban) { btColor = '#a855f7'; btOpacity = 0.75; }
+      else if (hasTower) { btColor = '#3b82f6'; btOpacity = 0.75; }
+      else if (hasUrban) { btColor = '#f59e0b'; btOpacity = 0.75; }
+      return {
+        fillColor: btColor,
+        weight: (hasTower || hasUrban) ? 1.5 : 0.5,
+        opacity: 1,
+        color: (hasTower || hasUrban) ? '#555' : '#222',
+        fillOpacity: btOpacity,
       };
     }
 
@@ -1181,6 +1208,7 @@ function renderThemeToContainer(theme, container) {
     case 'municipality': renderMunicipalityLegend(container); break;
     case 'ownership': renderOwnershipLegend(container); break;
     case 'affordable': renderAffordableLegend(container); break;
+    case 'buildingType': renderBuildingTypeLegend(container); break;
     case 'contamination': renderContaminationLegend(container); break;
     case 'publicInTradeable': renderPublicInTradeableLegend(container); break;
   }
@@ -1459,6 +1487,57 @@ function renderAffordableLegend(container) {
 
     <div class="legend-note" style="margin-top:8px; font-size:0.7rem; color:#7a8fa0;">
       עוצמת הצבע משקפת את כמות היחידות
+    </div>`;
+}
+
+function renderBuildingTypeLegend(container) {
+  if (!buildingRightsData) {
+    container.innerHTML = '<div style="color:#888;padding:10px">טוען נתוני בינוי...</div>';
+    return;
+  }
+  let towerCount = 0, urbanCount = 0, mixedCount = 0, towerUnits = 0, urbanUnits = 0;
+  for (const [id, parcel] of Object.entries(buildingRightsData.parcels)) {
+    if (!parcel.uses) continue;
+    let hasTower = false, hasUrban = false, pUnits = {t:0, u:0};
+    for (const use of parcel.uses) {
+      const bldg = (use["בניין / מקום"] || "").trim();
+      const units = parseInt(use["מספר יח \" ד"]) || 0;
+      if (bldg.includes("מגדלי")) { hasTower = true; pUnits.t += units; }
+      if (bldg.includes("מרקמי")) { hasUrban = true; pUnits.u += units; }
+    }
+    if (hasTower && hasUrban) mixedCount++;
+    else if (hasTower) towerCount++;
+    else if (hasUrban) urbanCount++;
+    towerUnits += pUnits.t;
+    urbanUnits += pUnits.u;
+  }
+
+  container.innerHTML = `
+    <div style="margin-bottom:12px; padding:10px; background:#0d1b2a; border-radius:6px; font-size:0.78rem;">
+      <div style="color:#a855f7; font-weight:700; margin-bottom:6px;">🏗️ טיפוסי בינוי</div>
+      <div style="color:#e0e0e0; font-size:0.85rem;">${(towerUnits + urbanUnits).toLocaleString('he-IL')} יח"ד</div>
+    </div>
+
+    <div class="legend-item">
+      <div class="legend-color" style="background:#3b82f6"></div>
+      <span>בינוי מגדלי</span>
+      <span class="legend-count">${towerCount} מגרשים · ${towerUnits.toLocaleString('he-IL')} יח"ד</span>
+    </div>
+    <div class="legend-item">
+      <div class="legend-color" style="background:#f59e0b"></div>
+      <span>בינוי מרקמי</span>
+      <span class="legend-count">${urbanCount} מגרשים · ${urbanUnits.toLocaleString('he-IL')} יח"ד</span>
+    </div>
+    <div class="legend-item">
+      <div class="legend-color" style="background:#a855f7"></div>
+      <span>מעורב (מגדלי + מרקמי)</span>
+      <span class="legend-count">${mixedCount} מגרשים</span>
+    </div>
+    <div style="margin-top:10px;">
+      <div class="legend-item">
+        <div class="legend-color" style="background:#1a1a2e; border:1px solid #333;"></div>
+        <span>ללא נתוני בינוי</span>
+      </div>
     </div>`;
 }
 
