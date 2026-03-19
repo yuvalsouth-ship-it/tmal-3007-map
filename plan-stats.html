@@ -394,12 +394,11 @@ async function loadData() {
   // שטח תחום איחוד וחלוקה (דונם)
   const ihudArea = 375.727; // מזרחי 254.758 + מערבי 120.969
 
+  const avgUnitSize = 85; // מ"ר - גודל יח"ד ממוצע
   const densityNet = totalUnits / residentialArea;
   const densityGross = totalUnits / ihudArea;
-  const avgGross = totalResAll / totalUnits;
-  const avgMain = totalResAbove / totalUnits;
-
-  const avgUnitSize = 85; // מ"ר - גודל יח"ד ממוצע
+  const avgGross = totalResAbove / totalUnits;
+  const avgMain = avgUnitSize; // שטח עיקרי ממוצע
 
   const grid = document.getElementById('units-grid');
   grid.innerHTML = `
