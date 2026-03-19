@@ -372,7 +372,10 @@
         0 -1px 0 rgba(0,0,0,0.8);
       pointer-events: none;
       padding: 0 !important;
+      margin: 0 !important;
       white-space: nowrap;
+      text-align: center;
+      direction: ltr;
     }
 
     /* ===== COMPOUND LABELS ===== */
@@ -777,9 +780,9 @@ function getStyleForTheme(feature, theme) {
       const floors = heightLookup[parcelId] || 0;
       return {
         fillColor:   getHeightColor(floors),
-        weight:      floors > 0 ? 1.5 : 0.5,
+        weight:      floors > 0 ? 1.5 : 1,
         opacity:     1,
-        color:       floors > 0 ? '#555' : '#222',
+        color:       floors > 0 ? '#555' : '#2a3a50',
         fillOpacity: floors > 0 ? 0.75 : 0.1,
       };
     }
@@ -788,7 +791,7 @@ function getStyleForTheme(feature, theme) {
       const isMatch = (code >= 600 && code < 700);
       return {
         fillColor:   isMatch ? '#4ade80' : '#1a1a2e',
-        weight:      isMatch ? 2.5 : 0.5,
+        weight:      isMatch ? 2.5 : 1,
         opacity:     1,
         color:       isMatch ? '#22c55e' : '#222',
         fillOpacity: isMatch ? 0.7 : 0.06,
@@ -799,7 +802,7 @@ function getStyleForTheme(feature, theme) {
       const isMatch = (code >= 400 && code < 500);
       return {
         fillColor:   isMatch ? '#8B4513' : '#1a1a2e',
-        weight:      isMatch ? 2.5 : 0.5,
+        weight:      isMatch ? 2.5 : 1,
         opacity:     1,
         color:       isMatch ? '#a0622e' : '#222',
         fillOpacity: isMatch ? 0.7 : 0.06,
@@ -813,7 +816,7 @@ function getStyleForTheme(feature, theme) {
       const isRoad = isProposed || isApproved;
       return {
         fillColor:   isRoad ? (isApproved ? '#f472b6' : '#FFB8D0') : '#1a1a2e',
-        weight:      isRoad ? 2.5 : 0.5,
+        weight:      isRoad ? 2.5 : 1,
         opacity:     1,
         color:       isRoad ? (isApproved ? '#db2777' : '#e88aab') : '#222',
         fillOpacity: isRoad ? 0.7 : 0.06,
@@ -833,9 +836,9 @@ function getStyleForTheme(feature, theme) {
     }
 
     case 'affordable': {
-      if (!affordableData) return { fillColor: '#1a1a2e', weight: 0.5, opacity: 1, color: '#333', fillOpacity: 0.15 };
+      if (!affordableData) return { fillColor: '#1a1a2e', weight: 1, opacity: 1, color: '#2a3a50', fillOpacity: 0.15 };
       const aff = affordableData.parcels[parcelId];
-      if (!aff || aff.total === 0) return { fillColor: '#1a1a2e', weight: 0.5, opacity: 1, color: '#222', fillOpacity: 0.08 };
+      if (!aff || aff.total === 0) return { fillColor: '#1a1a2e', weight: 1, opacity: 1, color: '#2a3a50', fillOpacity: 0.08 };
       // צבע לפי סוג השכרה דומיננטי
       let affColor = '#f59e0b'; // default amber
       if (aff.permanent_rental > 0) affColor = '#ef4444';       // אדום — לצמיתות
@@ -853,9 +856,9 @@ function getStyleForTheme(feature, theme) {
     }
 
     case 'ownership': {
-      if (!ownershipData) return { fillColor: '#1a1a2e', weight: 0.5, opacity: 1, color: '#333', fillOpacity: 0.15 };
+      if (!ownershipData) return { fillColor: '#1a1a2e', weight: 1, opacity: 1, color: '#2a3a50', fillOpacity: 0.15 };
       const parcelOwner = ownershipData.parcels[parcelId];
-      if (!parcelOwner) return { fillColor: '#1a1a2e', weight: 0.5, opacity: 1, color: '#333', fillOpacity: 0.1 };
+      if (!parcelOwner) return { fillColor: '#1a1a2e', weight: 1, opacity: 1, color: '#2a3a50', fillOpacity: 0.1 };
       const cat = parcelOwner.category;
       const catData = ownershipData.categories[cat];
       const ownerColor = catData ? catData.color : '#888';
@@ -863,18 +866,18 @@ function getStyleForTheme(feature, theme) {
       const filtered = ownershipFilter.size > 0 && !ownershipFilter.has(cat);
       return {
         fillColor:   filtered ? '#1a1a2e' : ownerColor,
-        weight:      filtered ? 0.5 : (isMulti ? 2.5 : 1.5),
+        weight:      filtered ? 1 : (isMulti ? 2.5 : 1.5),
         opacity:     1,
-        color:       filtered ? '#222' : (isMulti ? '#fff' : '#444'),
+        color:       filtered ? '#2a3a50' : (isMulti ? '#fff' : '#444'),
         fillOpacity: filtered ? 0.06 : 0.7,
         dashArray:   (!filtered && isMulti) ? '4,3' : null,
       };
     }
 
     case 'buildingType': {
-      if (!buildingRightsData) return { fillColor: '#1a1a2e', weight: 0.5, opacity: 1, color: '#333', fillOpacity: 0.15 };
+      if (!buildingRightsData) return { fillColor: '#1a1a2e', weight: 1, opacity: 1, color: '#2a3a50', fillOpacity: 0.15 };
       const brParcel = buildingRightsData.parcels[parcelId];
-      if (!brParcel || !brParcel.uses) return { fillColor: '#1a1a2e', weight: 0.5, opacity: 1, color: '#222', fillOpacity: 0.08 };
+      if (!brParcel || !brParcel.uses) return { fillColor: '#1a1a2e', weight: 1, opacity: 1, color: '#2a3a50', fillOpacity: 0.08 };
       let hasTower = false, hasUrban = false;
       for (const use of brParcel.uses) {
         const bldg = (use["בניין / מקום"] || "").trim();
@@ -887,9 +890,9 @@ function getStyleForTheme(feature, theme) {
       else if (hasUrban) { btColor = '#f59e0b'; btOpacity = 0.75; }
       return {
         fillColor: btColor,
-        weight: (hasTower || hasUrban) ? 1.5 : 0.5,
+        weight: (hasTower || hasUrban) ? 1.5 : 1,
         opacity: 1,
-        color: (hasTower || hasUrban) ? '#555' : '#222',
+        color: (hasTower || hasUrban) ? '#555' : '#2a3a50',
         fillOpacity: btOpacity,
       };
     }
@@ -898,9 +901,9 @@ function getStyleForTheme(feature, theme) {
       // Make parcels semi-transparent so compound overlay is visible
       return {
         fillColor:   '#1a1a2e',
-        weight:      0.5,
+        weight:      1,
         opacity:     1,
-        color:       '#333',
+        color:       '#2a3a50',
         fillOpacity: 0.15,
       };
     }
@@ -909,9 +912,9 @@ function getStyleForTheme(feature, theme) {
       // Make parcels semi-transparent so contamination overlay is visible
       return {
         fillColor:   '#1a1a2e',
-        weight:      0.5,
+        weight:      1,
         opacity:     1,
-        color:       '#333',
+        color:       '#2a3a50',
         fillOpacity: 0.15,
       };
     }
@@ -920,9 +923,9 @@ function getStyleForTheme(feature, theme) {
       const isMatch = publicInTradeableSet.has(parcelId);
       return {
         fillColor:   isMatch ? '#ff6b35' : '#1a1a2e',
-        weight:      isMatch ? 2.5 : 0.5,
+        weight:      isMatch ? 2.5 : 1,
         opacity:     1,
-        color:       isMatch ? '#e55a2b' : '#222',
+        color:       isMatch ? '#e55a2b' : '#2a3a50',
         fillOpacity: isMatch ? 0.7 : 0.06,
       };
     }
@@ -1044,6 +1047,7 @@ function onEachFeature(feature, layer) {
       permanent: true,
       direction: 'center',
       className: 'parcel-label',
+      offset: [0, 0],
     });
   }
 
