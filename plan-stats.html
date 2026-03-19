@@ -391,8 +391,11 @@ async function loadData() {
     }
   }
 
+  // שטח תחום איחוד וחלוקה (דונם)
+  const ihudArea = 375.727; // מזרחי 254.758 + מערבי 120.969
+
   const densityNet = totalUnits / residentialArea;
-  const densityGross = totalUnits / totalArea;
+  const densityGross = totalUnits / ihudArea;
   const avgGross = totalResAll / totalUnits;
   const avgMain = totalResAbove / totalUnits;
 
@@ -425,7 +428,7 @@ async function loadData() {
     <div class="stat-box">
       <div class="label">צפיפות ברוטו</div>
       <div class="value">${fmtDec(densityGross, 1)}</div>
-      <div class="sub">יח"ד / דונם כולל</div>
+      <div class="sub">יח"ד / דונם (תחום איחוד וחלוקה)</div>
     </div>
     <div class="stat-box">
       <div class="label">ממוצע שטח יח"ד ברוטו</div>
