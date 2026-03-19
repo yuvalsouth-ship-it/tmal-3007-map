@@ -208,7 +208,7 @@
         <div class="card-body">
           <table class="stats-table" id="designation-table">
             <thead>
-              <tr><th>ייעוד</th><th>קוד</th><th class="num">שטח (דונם)</th><th class="num">אחוז</th><th style="width:30%"></th></tr>
+              <tr><th>ייעוד</th><th class="num">שטח (דונם)</th><th class="num">אחוז</th><th style="width:30%"></th></tr>
             </thead>
             <tbody></tbody>
           </table>
@@ -302,14 +302,13 @@ async function loadData() {
     const color = getColorByCode(d.code);
     tbody1.innerHTML += `<tr>
       <td><span class="color-dot" style="background:${color}"></span>${d.name}</td>
-      <td class="num">${d.code}</td>
       <td class="num">${fmtDec(d.area, 2)}</td>
       <td class="num">${fmtDec(d.pct, 1)}%</td>
       <td class="bar-cell"><div class="bar-bg" style="width:${d.pct}%; background:${color}"></div></td>
     </tr>`;
   }
   tbody1.innerHTML += `<tr class="total-row">
-    <td>סה"כ</td><td></td>
+    <td>סה"כ</td>
     <td class="num">${fmtDec(totalArea, 2)}</td>
     <td class="num">100%</td><td></td>
   </tr>`;
