@@ -373,11 +373,20 @@ async function loadData() {
     }
   }
 
-  // שטח מגורים — תאי שטח עם ייעוד מגורים
+  // שטח מגורים — כל תאי שטח שיש בהם יח"ד
+  const parcelsWithUnits = new Set();
+  for (const [id, parcel] of Object.entries(rightsRes.parcels)) {
+    if (!parcel.uses) continue;
+    for (const use of parcel.uses) {
+      if ((parseInt(use["מספר יח \" ד"]) || 0) > 0) {
+        parcelsWithUnits.add(id);
+      }
+    }
+  }
   for (const f of parcelsRes.features) {
     const p = f.properties;
-    const code = parseInt(p["קוד ייעוד"]) || 0;
-    if (code >= 100 && code < 200) {
+    const id = (p["מספר תא שטח"] || p["id"] || "").toString();
+    if (parcelsWithUnits.has(id)) {
       residentialArea += parseFloat(p["שטח (דונם)"]) || 0;
     }
   }
